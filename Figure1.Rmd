@@ -110,12 +110,13 @@ slope_range <- c(0, 60000)
 color_prediction <- "#0072B2"
 color_comparison <- "#56B4E9"
 color_slope <- "#009E73"
+color_neutral <- "#BBBBBB"
 
 ggplot(data = hypothetical_woman, aes(x = einkommenj1, y = lebensz_org)) +
   # Line of the predicted values
   geom_line() +
   # Comparison
-  geom_segment(x = 20000, xend = 40000, y = prediction_20000, color = "#BBBBBB", linetype = "dashed") +
+  geom_segment(x = 20000, xend = 40000, y = prediction_20000, color = color_neutral, linetype = "dashed") +
   geom_segment(x = 40000, y = prediction_20000, yend = prediction_40000, color = color_comparison, linetype = "solid") +
   # Slope
   geom_segment(x = slope_range[1],

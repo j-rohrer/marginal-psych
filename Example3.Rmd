@@ -1,0 +1,69 @@
+---
+title: "Example 3: Deskmates"
+author: "Julia Rohrer"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    toc: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(error = TRUE, echo = TRUE)
+```
+
+## Overview
+
+This document contains example 3, in which we analyze the effect of being seated next to each other on friendships, using Bayesian multilevel models.
+
+### Load data and fit model
+
+```{r load_fit}
+# Read the data
+dat <- read.csv("data/friendship_share.csv")
+head(dat)
+
+# We will only take part of the data to make the model fitting less tedious
+classes <- unique(dat$class_id)
+
+# Total number of classes
+length(classes)
+
+# Lets keep 30 of those
+classes <- classes[1:30]
+
+# Reduce the data
+dat <- dat[dat$class_id %in% classes,]
+
+# Gendermatch as factor
+dat$girl_match <- as.factor(dat$girl_match)
+dat$deskmate <- as.factor(dat$deskmate)
+
+# Fit the model
+# library(brms)
+
+# set.seed(12345)
+# mod <- brm(friend ~ deskmate + girl_match + deskmate:girl_match + 
+#             (1 |class_id) + (1 | mm(s1, s2)),
+#           data = dat,
+#           cores = 4)
+
+# Save model fit
+# saveRDS(mod, file = "fits/example3")
+
+# Load the fitted model
+mod <- readRDS("fits/example3")
+```
+
+### Model results in marginaleffects
+
+```{r effects}
+library(marginaleffects)
+
+avg_comparisons(mod, variables = "deskmate", 
+                newdata = dat)
+
+avg_comparisons(mod, variables = "deskmate", 
+                by = "girl_match",
+                newdata = dat)
+
+```
