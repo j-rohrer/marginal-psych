@@ -1,0 +1,140 @@
+---
+title: "Example 1: Bouba/kiki"
+author: "Julia Rohrer"
+date: "`r Sys.Date()`"
+output: 
+  html_document:
+    toc: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(error = TRUE, echo = TRUE)
+```
+
+### Overview
+
+Substantively, we are looking at the bouba/kiki effect: This is the observation that people tend to associate particular sounds with particular shapes (e.g., rounded shapes with bouba, angular shapes with kiki), i.e., sound-shape mapping.
+[Heyman et al. (2019)](https://journals.sagepub.com/doi/10.1177/0956797619875482) conducted a replication study of [Hung et al. (2017)](https://journals.sagepub.com/doi/full/10.1177/0956797616677313) to test whether congruent stimuli (bubi spelled out in a round shape, kiki spelled out in an angular shape) become visible faster.
+If this was the case, it would indicate that sound-shape mapping occurs prior to conscious awareness.
+
+### Data reading and cleaning
+
+Here we prepare the data for our example 1.
+A lot of this code is just copied from the file that the authors provided on the OSF, downloadable from [https://osf.io/t5phc/](https://osf.io/t5phc/).
+The authors provided a single RMarkdown document; we only copied the relevant parts, which works better for our present purposes.
+
+```{r readData}
+
+# Code from Heyman et al.
+# library(dplyr)
+# temp=list.files(path="data/example1/data",pattern="*main.csv",full.names=TRUE) #all filenames with data from the main experiment
+# dataMain=lapply(temp, read.csv, sep=";")
+# dataMain=do.call(rbind, dataMain) #creates dataframe
+# ppInfo=read.csv("data/example1/data/InfoParticipants.csv",sep=";") #reads in participant info file
+# dataMain=left_join(dataMain,ppInfo,by=c("pp"="ppNumber")) #combines participant info with the rest of the data
+# tempControl=list.files(path="data/example1/data",pattern="*control.csv",full.names=TRUE) #all filenames with data from the control experiment
+# dataControl=lapply(tempControl, read.csv, sep=";")
+# dataControl=do.call(rbind, dataControl) #creates dataframe
+# 
+# # Applying some exclusion criteria
+# dataMain <- dataMain[dataMain$knowledge == "no",] # only participants who do not know the effect
+# dataMain <- dataMain[dataMain$rt != 999,] # remove timeouts
+# dataMain <- dataMain[dataMain$Accuracy == 1,] # remove wrong responses
+# write.csv(dataMain, file = "data/example1.csv", row.names = FALSE)
+
+dataMain <- read.csv("data/example1.csv")
+
+```
+
+
+### Re-analyzing the data with a generalized linear mixed effects model, author style
+
+First, we are going to analyze the data with a generalized linear mixed effects model.
+We will stick with the logic of the analyses that the authors conducted, that is: we compare congruent and incongruent stimuli.
+The effects are allowed to vary between people.
+
+```{r authorstyle}
+library(lme4)
+author_style <- glmer(rt ~ Congruent + (1 + Congruent | pp),
+                      data = dataMain,
+                      family = Gamma(link = "log"))
+
+# Take a look at the coefficients
+summary(author_style)
+
+
+library(marginaleffects)
+
+# Predicted mean reaction times
+avg_predictions(author_style, by = "Congruent")
+
+# Compare the two means
+avg_predictions(author_style, by = "Congruent", hypothesis = "b1 = b2")
+
+# Counterfactual comparison
+avg_comparisons(author_style, variables = "Congruent")
+
+# Look at the individual effects
+congruence_effect <- comparisons(author_style, variables = "Congruent")
+
+library(ggplot2)
+
+color_prediction <- "#0072B2"
+color_comparison <- "#56B4E9"
+color_slope <- "#009E73"
+color_neutral <- "#BBBBBB"
+
+ggplot(dat = congruence_effect, aes(x = estimate)) +
+  geom_density(bw = 0.015, fill = color_comparison, alpha = .2) +
+  theme_classic() +
+  geom_vline(xintercept = 0, color = color_neutral) +
+  xlab("Congruence effect") +
+  ylab("Density") +
+  coord_cartesian(xlim = c(-0.2, 0.2))
+ggsave("plots/fig3.png", width = 4, height = 3)
+
+# Equivalence test
+# Using plot digitizer on figure 3 (Experiment 1) in the original paper by Hung et al.
+# We find an difference between the conditions of approximately -0.12s
+# Is our estimate within range of this? Equivalence test for the interval of difference plus minus 50%
+
+avg_comparisons(author_style, variables = "Congruent",
+                equivalence = c(-0.18, -0.06))
+
+# can reject that the difference is smaller than in the original study
+# cannot reject that the difference is larger
+# cannot reject the null hypothesis that the two coefficients are meaningfully different
+
+```
+
+
+### Another way to set up the model
+
+Instead of directly looking at congruence as the predictor of interest, it may be natural to think about the effects of shape (spikes vs. bubble), text (kiki vs. buba), and of their interaction.
+This results in an alternative model specification.
+
+
+```{r alternative}
+alternative <- glmer(rt ~ Spikes*Kiki + (1 + Spikes*Kiki | pp),
+                     data = dataMain,
+                     family = Gamma(link = "log"))
+
+# Take a look at the coefficients
+summary(alternative)
+
+# Predict the means for all for conditions
+avg_predictions(alternative, by = c("Spikes", "Kiki"))
+
+# Test congruence effects
+avg_predictions(alternative, by = c("Spikes", "Kiki"),
+                hypothesis = "(b1 + b4)/2 - (b2 + b3)/2 = 0")
+
+
+```
+
+
+
+
+
+
+
