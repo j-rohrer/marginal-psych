@@ -29,7 +29,7 @@ classes <- unique(dat$class_id)
 length(classes)
 
 # Lets keep 30 of those
-classes <- classes[1:30]
+classes <- classes[1:60]
 
 # Reduce the data
 dat <- dat[dat$class_id %in% classes,]
@@ -39,16 +39,18 @@ dat$girl_match <- as.factor(dat$girl_match)
 dat$deskmate <- as.factor(dat$deskmate)
 
 # Fit the model
-# library(brms)
+library(brms)
 
-# set.seed(12345)
-# mod <- brm(friend ~ deskmate + girl_match + deskmate:girl_match + 
-#             (1 |class_id) + (1 | mm(s1, s2)),
-#           data = dat,
-#           cores = 4)
+set.seed(12345)
+mod <- brm(friend ~ deskmate + girl_match + deskmate:girl_match + 
+             mean_gpa + diff_gpa + mean_gpa:deskmate + diff_gpa:deskmate +
+             (1 |class_id) + (1 | mm(s1, s2)),
+           family = bernoulli(link = "logit"),
+           data = dat,
+           cores = 4)
 
 # Save model fit
-# saveRDS(mod, file = "fits/example3")
+saveRDS(mod, file = "fits/example3")
 
 # Load the fitted model
 mod <- readRDS("fits/example3")
@@ -59,11 +61,75 @@ mod <- readRDS("fits/example3")
 ```{r effects}
 library(marginaleffects)
 
+avg_comparisons(mod, variables = "deskmate", type = "link")
+
+avg_comparisons(mod, variables = "deskmate")
+
+avg_predictions(mod, variables = "deskmate")
+
+
 avg_comparisons(mod, variables = "deskmate", 
-                newdata = dat)
+                by = "girl_match")
 
 avg_comparisons(mod, variables = "deskmate", 
                 by = "girl_match",
-                newdata = dat)
+                hypothesis = "(b1 + b3)/2 = b2")
+
+# HIER WEITER
+
+# New categorical difference in GPA variable
+dat$diff_gpa_cat <- NA
+dat$diff_gpa_cat[dat$diff_gpa <= mean(dat$diff_gpa, na.rm = TRUE) - sd(dat$diff_gpa, na.rm = TRUE)] <- -1
+dat$diff_gpa_cat[dat$diff_gpa > mean(dat$diff_gpa, na.rm = TRUE) - sd(dat$diff_gpa, na.rm = TRUE)] <- 0
+dat$diff_gpa_cat[dat$diff_gpa >= mean(dat$diff_gpa, na.rm = TRUE) + sd(dat$diff_gpa, na.rm = TRUE)] <- 1
+
+avg_comparisons(mod, variables = "deskmate", 
+                by = "diff_gpa_cat")
+
+# Evaluate effect at values of interest
+avg_comparisons(mod, variables = c("deskmate", "girl_match"))
+
+avg_comparisons(mod, variables = list("diff_gpa" = "sd"))
+
+avg_comparisons(mod, variables = c("deskmate", "diff_gpa"))
+
+comparisons(mod, variables = "deskmate", newdata = datagrid(diff_gpa = range))
+
+
+# Compare the effects
+comparisons(mod, variables = "deskmate", newdata = datagrid(
+  diff_gpa = range), hypothesis = "b1 = b2") # 0.046
+
+
+# Compare the effects separately by gendermatch
+comparisons(mod, variables = "deskmate", newdata = datagrid(
+  girl_match = c(0, 1, 2), 
+  diff_gpa = range))
+
+comparisons(mod, variables = "deskmate", newdata = datagrid(
+  girl_match = c(0, 1, 2), 
+  diff_gpa = range), hypothesis = "b1 = b2") # 0.046
+
+comparisons(mod, variables = "deskmate", newdata = datagrid(
+  girl_match = c(0, 1, 2), 
+  diff_gpa = range), hypothesis = "b3 = b4")
+
+comparisons(mod, variables = "deskmate", newdata = datagrid(
+  girl_match = c(0, 1, 2), 
+  diff_gpa = range), hypothesis = "b5 = b6")
+
+
+# Correlation between gender-match and difference in gpa
+mean(dat$diff_gpa[dat$girl_match == 0], na.rm = TRUE)
+mean(dat$diff_gpa[dat$girl_match == 1], na.rm = TRUE)
+mean(dat$diff_gpa[dat$girl_match == 2], na.rm = TRUE)
+
+# How to evaluate interaction between diff_gpa and deskmate, holding constant the other stuff
+avg_comparisons(mod, variables = "deskmate", by = "diff_gpa", newdata = datagrid(diff_gpa = range))
+avg_comparisons(mod, variables = "deskmate", by = "diff_gpa", newdata = datagrid(diff_gpa = range), hypothesis = "b1 = b2") # difference of 0.0462
+
+avg_comparisons(mod, variables = "deskmate", by = "diff_gpa") # here, the difference in effects is much larger
+
+avg_comparisons(mod, variables = "deskmate", by = "diff_gpa", hypothesis = "b1 = b37") # here, the difference in effects is much larger
 
 ```
