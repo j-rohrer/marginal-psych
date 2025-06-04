@@ -115,7 +115,8 @@ This results in an alternative model specification.
 
 
 ```{r alternative}
-alternative <- glmer(rt ~ Spikes*Kiki + (1 + Spikes*Kiki | pp),
+alternative <- glmer(rt ~ Spikes + Kiki + Spikes:Kiki + 
+                       (1 + Spikes + Kiki + Spikes:Kiki | pp),
                      data = dataMain,
                      family = Gamma(link = "log"))
 
