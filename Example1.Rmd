@@ -163,3 +163,37 @@ avg_comparisons(alternative, variables = "Spikes", by = "Kiki",
 
 
 
+
+
+# Frequentist vs Bayesian uncertainty
+
+```{r, eval=FALSE}
+library(marginaleffects)
+library(brms)
+library(future)
+plan(multisession)
+options(marginaleffects_inferences_parallel = TRUE)
+options(marginaleffects_parallel_packages = c("lme4"))
+
+m1 <- glmer(
+  rt ~ Spikes + Kiki + Spikes:Kiki +
+    (1 + Spikes + Kiki + Spikes:Kiki | pp),
+  data = dataMain,
+  family = Gamma(link = "log"))
+
+p1 <- avg_predictions(m1, by = c("Spikes", "Kiki"))
+m2 <- brm(
+  rt ~ Spikes + Kiki + Spikes:Kiki +
+    (1 + Spikes + Kiki + Spikes:Kiki | pp),
+  data = dataMain,
+  family = Gamma(link = "log"),
+  cores = 4,
+  backend = "cmdstanr")
+
+p2 <- avg_predictions(m2, by = c("Spikes", "Kiki"))
+p1
+p2
+
+## commented out because it takes too long for some reason I don't have time to figure out
+# p2 <- avg_predictions(alternative, by = c("Spikes", "Kiki")) |> inferences("rsample")
+```
