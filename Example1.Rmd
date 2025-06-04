@@ -91,7 +91,7 @@ ggplot(dat = congruence_effect, aes(x = estimate)) +
   xlab("Congruence effect") +
   ylab("Density") +
   coord_cartesian(xlim = c(-0.2, 0.2))
-ggsave("plots/fig3.png", width = 4, height = 3)
+ggsave("plots/fig3b.png", width = 3, height = 3)
 
 # Equivalence test
 # Using plot digitizer on figure 3 (Experiment 1) in the original paper by Hung et al.
@@ -110,7 +110,7 @@ avg_comparisons(author_style, variables = "Congruent",
 
 ### Another way to set up the model
 
-Instead of directly looking at congruence as the predictor of interest, it may be natural to think about the effects of shape (spikes vs. bubble), text (kiki vs. buba), and of their interaction.
+Instead of directly looking at congruence as the predictor of interest, it may be natural to think about the effects of shape (spikes vs. bubble), text (kiki vs. bubu), and of their interaction.
 This results in an alternative model specification.
 
 
@@ -123,12 +123,36 @@ alternative <- glmer(rt ~ Spikes*Kiki + (1 + Spikes*Kiki | pp),
 summary(alternative)
 
 # Predict the means for all for conditions
-avg_predictions(alternative, by = c("Spikes", "Kiki"))
+predicted_means <- avg_predictions(alternative, by = c("Spikes", "Kiki"))
+print(predicted_means)
+
+ggplot(predicted_means, aes(x = as.factor(Kiki), y = estimate, group = Spikes, shape = as.factor(Spikes), color = as.factor(Spikes))) +
+  geom_point(position = position_dodge(width = 0.3)) +
+  geom_errorbar(aes(ymin = conf.low, ymax = conf.high),
+                position = position_dodge(width = 0.3),
+                width = .3) +
+  scale_x_discrete(labels = c("0" = "bubu", "1" = "kiki")) +
+  scale_color_discrete(labels = c("0" = "Rounded", "1" = "Spikey")) +
+  scale_shape_discrete(labels = c("0" = "Rounded", "1" = "Spikey")) +
+  labs(x = "Displayed word",
+       y = "Reaction time in seconds (95% CI)",
+       color = "Shape",
+       shape = "Shape") +
+  coord_cartesian(ylim = c(2.5, 4.5)) +
+  theme_classic()
+ggsave("plots/fig3c.png", width = 3, height = 3)
+
 
 # Test congruence effects
 avg_predictions(alternative, by = c("Spikes", "Kiki"),
                 hypothesis = "(b1 + b4)/2 - (b2 + b3)/2 = 0")
 
+# Comparison
+avg_comparisons(alternative, variables = "Spikes", by = "Kiki")
+# Spikes speed up reaction time for both Bubu and Kiki
+# But more so for Kiki
+avg_comparisons(alternative, variables = "Spikes", by = "Kiki",
+                hypothesis = "b1 = b2")
 
 ```
 
