@@ -1,13 +1,14 @@
 ---
-title: "Example 1: Bouba/kiki"
+title: "Example: Bubu/kiki"
 author: "Julia Rohrer"
 date: "`r Sys.Date()`"
-output: 
-  html_document:
+format: 
+  html:
     toc: true
 ---
 
 ```{r setup, include=FALSE}
+source(here::here("scripts/load.R"))
 knitr::opts_chunk$set(error = TRUE, echo = TRUE)
 ```
 
@@ -24,26 +25,7 @@ A lot of this code is just copied from the file that the authors provided on the
 The authors provided a single RMarkdown document; we only copied the relevant parts, which works better for our present purposes.
 
 ```{r readData}
-
-# Code from Heyman et al.
-# library(dplyr)
-# temp=list.files(path="data/example1/data",pattern="*main.csv",full.names=TRUE) #all filenames with data from the main experiment
-# dataMain=lapply(temp, read.csv, sep=";")
-# dataMain=do.call(rbind, dataMain) #creates dataframe
-# ppInfo=read.csv("data/example1/data/InfoParticipants.csv",sep=";") #reads in participant info file
-# dataMain=left_join(dataMain,ppInfo,by=c("pp"="ppNumber")) #combines participant info with the rest of the data
-# tempControl=list.files(path="data/example1/data",pattern="*control.csv",full.names=TRUE) #all filenames with data from the control experiment
-# dataControl=lapply(tempControl, read.csv, sep=";")
-# dataControl=do.call(rbind, dataControl) #creates dataframe
-# 
-# # Applying some exclusion criteria
-# dataMain <- dataMain[dataMain$knowledge == "no",] # only participants who do not know the effect
-# dataMain <- dataMain[dataMain$rt != 999,] # remove timeouts
-# dataMain <- dataMain[dataMain$Accuracy == 1,] # remove wrong responses
-# write.csv(dataMain, file = "data/example1.csv", row.names = FALSE)
-
-dataMain <- read.csv("data/example1.csv")
-
+dataMain <- read.csv(here("data/bubu_kiki.csv"))
 ```
 
 
@@ -54,7 +36,6 @@ We will stick with the logic of the analyses that the authors conducted, that is
 The effects are allowed to vary between people.
 
 ```{r authorstyle}
-library(lme4)
 author_style <- glmer(rt ~ Congruent + (1 + Congruent | pp),
                       data = dataMain,
                       family = Gamma(link = "log"))
@@ -63,7 +44,6 @@ author_style <- glmer(rt ~ Congruent + (1 + Congruent | pp),
 summary(author_style)
 
 
-library(marginaleffects)
 
 # Predicted mean reaction times
 avg_predictions(author_style, by = "Congruent")
@@ -77,7 +57,6 @@ avg_comparisons(author_style, variables = "Congruent")
 # Look at the individual effects
 congruence_effect <- comparisons(author_style, variables = "Congruent")
 
-library(ggplot2)
 
 color_prediction <- "#0072B2"
 color_comparison <- "#56B4E9"
@@ -91,7 +70,7 @@ ggplot(dat = congruence_effect, aes(x = estimate)) +
   xlab("Congruence effect") +
   ylab("Density") +
   coord_cartesian(xlim = c(-0.2, 0.2))
-ggsave("plots/fig3b.png", width = 3, height = 3)
+ggsave(here("plots/fig3b.png"), width = 3, height = 3)
 
 # Equivalence test
 # Using plot digitizer on figure 3 (Experiment 1) in the original paper by Hung et al.
@@ -141,7 +120,7 @@ ggplot(predicted_means, aes(x = as.factor(Kiki), y = estimate, group = Spikes, s
        shape = "Shape") +
   coord_cartesian(ylim = c(2.5, 4.5)) +
   theme_classic()
-ggsave("plots/fig3c.png", width = 3, height = 3)
+ggsave(here("plots/fig3c.png"), width = 3, height = 3)
 
 
 # Test congruence effects
@@ -168,9 +147,6 @@ avg_comparisons(alternative, variables = "Spikes", by = "Kiki",
 # Frequentist vs Bayesian uncertainty
 
 ```{r, eval=FALSE}
-library(marginaleffects)
-library(brms)
-library(future)
 plan(multisession)
 options(marginaleffects_inferences_parallel = TRUE)
 options(marginaleffects_parallel_packages = c("lme4"))

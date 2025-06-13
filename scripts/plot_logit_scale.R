@@ -1,22 +1,13 @@
----
-title: "Figure 2 Binary Logistic Regression"
-author: "Julia Rohrer"
-date: "`r Sys.Date()`"
-output: 
-  html_document:
-    toc: true
----
+# Figure 2 Binary Logistic Regression
+# Author: Julia Rohrer
+# Date: Generated from Quarto document
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
+source(here::here("scripts/load.R"))
 
-## Overview
+# Overview
+#
+# In this document, we generate a simple illustration of how quantities can be calculated on different scales. 
 
-In this document, we generate a simple illustration of how quantities can be calculated on different scales. 
-
-
-```{r figure}
 # Define the inverse logit function
 inv_logit <- function(x) {
   exp(x) / (1 + exp(x))
@@ -31,7 +22,6 @@ df <- data.frame(
 df$probability <- inv_logit(df$log_odds)
 
 # Plot
-library(ggplot2)
 
 # color scheme
 color_prediction <- "#0072B2"
@@ -62,8 +52,4 @@ ggplot(df, aes(x = log_odds, y = probability)) +
   xlab("Log-odds scale") +
   ylab("Probability scale") +
   theme_classic()
-ggsave("plots/fig2.png", width = 4, height = 3)
-
-
-```
-
+ggsave(here("plots/logit_scale_raw.png"), width = 4, height = 3)
