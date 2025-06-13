@@ -6,7 +6,7 @@ source(here::here("scripts/load.R"))
 
 # Overview
 #
-# In this document, we generate a simple illustration of how quantities can be calculated on different scales. 
+# In this document, we generate a simple illustration of how quantities can be calculated on different scales.
 
 # Define the inverse logit function
 inv_logit <- function(x) {
@@ -38,17 +38,65 @@ ggplot(df, aes(x = log_odds, y = probability)) +
   geom_line() +
 
   # Guideline prediction
-  geom_segment(x = -10, xend = low_point, y = inv_logit(low_point), color = color_neutral, linetype = "dashed", alpha = .80) +
-  geom_segment(x = -10, xend = high_point, y = inv_logit(high_point), color = color_neutral, linetype = "dashed", alpha = .80) +
-  geom_segment(y = 0, yend = inv_logit(low_point), x = low_point, color = color_neutral, linetype = "dashed", alpha = .80) +
-  geom_segment(y = 0, yend = inv_logit(high_point), x = high_point, color = color_neutral, linetype = "dashed", alpha = .80) +
-    # Comparison
-  geom_segment(x = low_point, xend = high_point, y = inv_logit(low_point), color = color_comparison, linetype = "solid") +
-  geom_segment(x = high_point, y = inv_logit(low_point), yend = inv_logit(high_point), color = color_comparison, linetype = "solid") +
+  geom_segment(
+    x = -10,
+    xend = low_point,
+    y = inv_logit(low_point),
+    color = color_neutral,
+    linetype = "dashed",
+    alpha = .80
+  ) +
+  geom_segment(
+    x = -10,
+    xend = high_point,
+    y = inv_logit(high_point),
+    color = color_neutral,
+    linetype = "dashed",
+    alpha = .80
+  ) +
+  geom_segment(
+    y = 0,
+    yend = inv_logit(low_point),
+    x = low_point,
+    color = color_neutral,
+    linetype = "dashed",
+    alpha = .80
+  ) +
+  geom_segment(
+    y = 0,
+    yend = inv_logit(high_point),
+    x = high_point,
+    color = color_neutral,
+    linetype = "dashed",
+    alpha = .80
+  ) +
+  # Comparison
+  geom_segment(
+    x = low_point,
+    xend = high_point,
+    y = inv_logit(low_point),
+    color = color_comparison,
+    linetype = "solid"
+  ) +
+  geom_segment(
+    x = high_point,
+    y = inv_logit(low_point),
+    yend = inv_logit(high_point),
+    color = color_comparison,
+    linetype = "solid"
+  ) +
   # First prediction
-  geom_point(x = low_point, y = inv_logit(low_point), color = color_prediction) +
+  geom_point(
+    x = low_point,
+    y = inv_logit(low_point),
+    color = color_prediction
+  ) +
   # Second prediction
-  geom_point(x = high_point, y = inv_logit(high_point), color = color_prediction) +
+  geom_point(
+    x = high_point,
+    y = inv_logit(high_point),
+    color = color_prediction
+  ) +
   xlab("Log-odds scale") +
   ylab("Probability scale") +
   theme_classic()
