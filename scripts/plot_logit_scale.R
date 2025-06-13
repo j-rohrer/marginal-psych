@@ -98,6 +98,5 @@ ggplot(df, aes(x = log_odds, y = probability)) +
     color = color_prediction
   ) +
   xlab("Log-odds scale") +
-  ylab("Probability scale") +
-  theme_classic()
+  ylab("Probability scale")
 ggsave(here("plots/logit_scale_raw.png"), width = 4, height = 3)

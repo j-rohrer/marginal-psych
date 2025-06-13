@@ -154,7 +154,6 @@ ggplot(data = hypothetical_woman, aes(x = einkommenj1, y = lebensz_org)) +
   geom_point(x = 20000, y = prediction_20000, color = color_prediction) +
   geom_point(x = 40000, y = prediction_40000, color = color_prediction) +
   # Layout and make it look nice
-  theme_classic() +
   xlab("Annual gross income") +
   ylab("Predicted life satisfaction") +
   coord_cartesian(ylim = c(7, 8.25)) +

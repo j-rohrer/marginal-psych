@@ -7,144 +7,231 @@ format:
     toc: true
 ---
 
-```{r setup, include=FALSE}
-source(here::here("scripts/load.R"))
-knitr::opts_chunk$set(error = TRUE, echo = TRUE)
+```{r setup}
+#| include: false
+options(marginaleffects_safe = FALSE)
+options(marginaleffects_print_type = FALSE)
+options(width = 300)
+knitr::opts_chunk$set(error = TRUE, echo = TRUE, warning = FALSE, message = FALSE)
 ```
 
-### Overview
+# Overview
 
-Substantively, we are looking at the bouba/kiki effect: This is the observation that people tend to associate particular sounds with particular shapes (e.g., rounded shapes with bouba, angular shapes with kiki), i.e., sound-shape mapping.
-[Heyman et al. (2019)](https://journals.sagepub.com/doi/10.1177/0956797619875482) conducted a replication study of [Hung et al. (2017)](https://journals.sagepub.com/doi/full/10.1177/0956797616677313) to test whether congruent stimuli (bubi spelled out in a round shape, kiki spelled out in an angular shape) become visible faster.
-If this was the case, it would indicate that sound-shape mapping occurs prior to conscious awareness.
+Substantively, we are looking at the bouba/kiki effect: This is the observation that people tend to associate particular sounds with particular shapes (e.g., rounded shapes with bouba, angular shapes with kiki), i.e., sound-shape mapping. [Heyman et al. (2019)](https://journals.sagepub.com/doi/10.1177/0956797619875482) conducted a replication study of [Hung et al. (2017)](https://journals.sagepub.com/doi/full/10.1177/0956797616677313) to test whether congruent stimuli (bubi spelled out in a round shape, kiki spelled out in an angular shape) become visible faster. If this were the case, it would indicate that sound-shape mapping occurs prior to conscious awareness.
 
-### Data reading and cleaning
+Before we start, let's execute a helper script that loads the necessary dependencies.
 
-Here we prepare the data for our example 1.
+```{r}
+source(here::here("scripts/load.R"))
+```
+
+# Data reading and cleaning
+
+Here we prepare the data for our example 1. 
 A lot of this code is just copied from the file that the authors provided on the OSF, downloadable from [https://osf.io/t5phc/](https://osf.io/t5phc/).
 The authors provided a single RMarkdown document; we only copied the relevant parts, which works better for our present purposes.
 
 ```{r readData}
-dataMain <- read.csv(here("data/bubu_kiki.csv"))
+dataMain <- read.csv(here("data/bubu_kiki.csv")) |>
+    transform(
+        Spikes = ifelse(Spikes == 1, "Rounded", "Spikey"),
+        Kiki = ifelse(Kiki == 1, "Kiki", "Bubu")
+    )
 ```
 
+# Vincent's analysis
 
-### Re-analyzing the data with a generalized linear mixed effects model, author style
+Background on model specifications:
 
-First, we are going to analyze the data with a generalized linear mixed effects model.
-We will stick with the logic of the analyses that the authors conducted, that is: we compare congruent and incongruent stimuli.
-The effects are allowed to vary between people.
+1. Authors A fit a mixed effects model in which the main predictor of interest is a binary variable (`Congruent`) equal to 1 when Bubu+Rounded or Kiki+Spikey, and 0 otherwise.
+2. Authors B fit a mixed effects model with a multiplicative interaction between the binary `Kiki` and `Spikes` variables.
 
-```{r authorstyle}
-author_style <- glmer(rt ~ Congruent + (1 + Congruent | pp),
-                      data = dataMain,
-                      family = Gamma(link = "log"))
+The two models yield very similar results but they are not, strictly speaking, mathematically equivalent. In fact, the second model's interaction structure is slightly more flexible, as it allows us to compute estimates for every combination of the `Kiki` and `Spikes` variables, not just for congruent or incongruent pairs. In this worked example, we thus follow Authors B and fit the second model.
+
+```{r}
+alternative <- glmer(
+    rt ~ Spikes + Kiki + Spikes:Kiki +
+        (1 + Spikes + Kiki + Spikes:Kiki | pp),
+    data = dataMain,
+    family = Gamma(link = "log")
+)
 
 # Take a look at the coefficients
-summary(author_style)
+parameters(alternative)
+```
 
+#### What is the average reaction time for each combination of `Kiki` and `Spikes`?
 
+```{r}
+avg_predictions(alternative, by = c("Kiki", "Spikes"))
+
+plot_predictions(alternative, by = c("Kiki", "Spikes")) +
+    labs(y = "Reaction time in seconds (95% CI)", x = "")
+```
+
+#### What is the average reaction time for Congruent and Incongruent stimuli?^[Note that the `by` argument accepts any variable from the dataset, even if that variable is not a predictor in the model.]
+
+```{r}
+avg_predictions(alternative, by = "Congruent")
+```
+
+#### Is the average reaction time smaller for Congruent stimuli than for Incongruent stimuli?
+
+```{r}
+avg_predictions(alternative, by = "Congruent", hypothesis = "b2 - b1 = 0")
+```
+
+Yes, we can reject the null hypothesis that the average reaction time is the same in the Congruent and Incongruent subsets.
+
+#### What is the average treatment effect of "Kiki" on reaction time?
+
+```{r}
+cmp <- avg_comparisons(alternative, variables = "Kiki")
+cmp
+```
+
+On average, moving from "Bubu" to "Kiki" increases reaction time by `{r} sprintf("%.3f", cmp$estimate)` seconds.
+
+#### What is the conditional average treatment effect of "Kiki", for different values of "Spikes"?
+
+```{r}
+cmp <- avg_comparisons(alternative, variables = "Kiki", by = "Spikes")
+cmp
+```
+
+On average, "Kiki" increases reaction time by `{r} sprintf("%.3f", cmp$estimate[1])` seconds when the shape is rounded, and by `{r} sprintf("%.3f", cmp$estimate[2])` seconds for spiky shapes.
+
+#### Is the conditional average treatment effect of "Kiki" larger when the shape is Spikey than when the shape is Rounded?
+
+```{r}
+cmp <- avg_comparisons(alternative, variables = "Kiki", by = "Spikes", hypothesis = "b2 - b1 = 0")
+cmp
+```
+
+Yes. On average, the effect of "Kiki" on reaction time is `{r} sprintf("%.3f", cmp$estimate)` seconds larger for spiky shapes than for rounded shapes.
+
+#### What is the average treatment effect of congruence on reaction time?
+
+#### Is the average treatment effect of congruence equivalent to the estimate reported in prior literature?
+
+# Julia's analysis
+
+## Mixed effects model
+
+First, we are going to analyze the data with a generalized linear mixed effects model.  We will stick with the logic of the analyses that the authors conducted, that is: we compare congruent and incongruent stimuli. The effects are allowed to vary between people.
+
+```{r authorstyle}
+original <- glmer(rt ~ Congruent + (1 + Congruent | pp),
+    data = dataMain,
+    family = Gamma(link = "log")
+)
+
+# Take a look at the coefficients
+parameters(original)
 
 # Predicted mean reaction times
-avg_predictions(author_style, by = "Congruent")
+avg_predictions(original, by = "Congruent")
 
 # Compare the two means
-avg_predictions(author_style, by = "Congruent", hypothesis = "b1 = b2")
+avg_predictions(original, by = "Congruent", hypothesis = "b1 = b2")
 
-# Counterfactual comparison
-avg_comparisons(author_style, variables = "Congruent")
+# Average counterfactual comparison
+avg_comparisons(original, variables = "Congruent")
 
 # Look at the individual effects
-congruence_effect <- comparisons(author_style, variables = "Congruent")
+congruence_effect <- comparisons(original, variables = "Congruent")
 
-
+# draw and save density plot
 color_prediction <- "#0072B2"
 color_comparison <- "#56B4E9"
 color_slope <- "#009E73"
 color_neutral <- "#BBBBBB"
 
 ggplot(dat = congruence_effect, aes(x = estimate)) +
-  geom_density(bw = 0.015, fill = color_comparison, alpha = .2) +
-  theme_classic() +
-  geom_vline(xintercept = 0, color = color_neutral) +
-  xlab("Congruence effect") +
-  ylab("Density") +
-  coord_cartesian(xlim = c(-0.2, 0.2))
+    geom_density(bw = 0.015, fill = color_comparison, alpha = .2) +
+    geom_vline(xintercept = 0, color = color_neutral) +
+    labs(x = "Congruence effect", y = "Density") +
+    coord_cartesian(xlim = c(-0.2, 0.2))
+
 ggsave(here("plots/fig3b.png"), width = 3, height = 3)
 
 # Equivalence test
-# Using plot digitizer on figure 3 (Experiment 1) in the original paper by Hung et al.
-# We find an difference between the conditions of approximately -0.12s
-# Is our estimate within range of this? Equivalence test for the interval of difference plus minus 50%
-
-avg_comparisons(author_style, variables = "Congruent",
-                equivalence = c(-0.18, -0.06))
-
-# can reject that the difference is smaller than in the original study
-# cannot reject that the difference is larger
-# cannot reject the null hypothesis that the two coefficients are meaningfully different
-
+# Can we reject the null hypothesis that the average effect of
+# congruence lies outside the [-0.18, -0.06] interval?
+avg_comparisons(original,
+    variables = "Congruent",
+    equivalence = c(-0.18, -0.06)
+)
 ```
 
+The equivalence test results suggests that:
 
-### Another way to set up the model
+1. We can reject the null hypothesis that the average treatment effect is below -0.18 (i.e., farther from zero).
+2. We cannot reject the null hypothesis that the average treatment effect is above -0.06 (i.e., closer to zero).
+3. We cannot reject the null hypothesis that the two estimates of the average treatment effect are substantively equivalent.
+
+## Alternative model specification
 
 Instead of directly looking at congruence as the predictor of interest, it may be natural to think about the effects of shape (spikes vs. bubble), text (kiki vs. bubu), and of their interaction.
+
 This results in an alternative model specification.
 
-
 ```{r alternative}
-alternative <- glmer(rt ~ Spikes + Kiki + Spikes:Kiki + 
-                       (1 + Spikes + Kiki + Spikes:Kiki | pp),
-                     data = dataMain,
-                     family = Gamma(link = "log"))
+alternative <- glmer(
+    rt ~ Spikes + Kiki + Spikes:Kiki +
+        (1 + Spikes + Kiki + Spikes:Kiki | pp),
+    data = dataMain,
+    family = Gamma(link = "log")
+)
 
 # Take a look at the coefficients
-summary(alternative)
+parameters(alternative)
+```
 
-# Predict the means for all for conditions
-predicted_means <- avg_predictions(alternative, by = c("Spikes", "Kiki"))
-print(predicted_means)
+The two models are *not* mathematically equivalent.
 
-ggplot(predicted_means, aes(x = as.factor(Kiki), y = estimate, group = Spikes, shape = as.factor(Spikes), color = as.factor(Spikes))) +
-  geom_point(position = position_dodge(width = 0.3)) +
-  geom_errorbar(aes(ymin = conf.low, ymax = conf.high),
-                position = position_dodge(width = 0.3),
-                width = .3) +
-  scale_x_discrete(labels = c("0" = "bubu", "1" = "kiki")) +
-  scale_color_discrete(labels = c("0" = "Rounded", "1" = "Spikey")) +
-  scale_shape_discrete(labels = c("0" = "Rounded", "1" = "Spikey")) +
-  labs(x = "Displayed word",
-       y = "Reaction time in seconds (95% CI)",
-       color = "Shape",
-       shape = "Shape") +
-  coord_cartesian(ylim = c(2.5, 4.5)) +
-  theme_classic()
+```{r}
+tmp <- data.frame(
+    Original = predictions(original)$estimate,
+    Alternative = predictions(alternative)$estimate
+)
+ggplot(tmp, aes(x = Original, y = Alternative)) +
+    coord_fixed() +
+    geom_abline(slope = 1, intercept = 0, linetype = 3) +
+    geom_point()
+```
+
+```{r}
+# Predicted mean in each condition
+avg_predictions(alternative, by = c("Spikes", "Kiki"))
+
+plot_predictions(alternative, by = c("Kiki", "Spikes")) +
+    labs(
+        x = "Displayed word",
+        y = "Reaction time in seconds (95% CI)",
+        color = "Shape",
+        shape = "Shape"
+    )
 ggsave(here("plots/fig3c.png"), width = 3, height = 3)
 
-
 # Test congruence effects
-avg_predictions(alternative, by = c("Spikes", "Kiki"),
-                hypothesis = "(b1 + b4)/2 - (b2 + b3)/2 = 0")
+avg_predictions(alternative,
+    by = c("Spikes", "Kiki"),
+    hypothesis = "(b1 + b4)/2 - (b2 + b3)/2 = 0"
+)
 
 # Comparison
 avg_comparisons(alternative, variables = "Spikes", by = "Kiki")
+
 # Spikes speed up reaction time for both Bubu and Kiki
 # But more so for Kiki
-avg_comparisons(alternative, variables = "Spikes", by = "Kiki",
-                hypothesis = "b1 = b2")
-
+avg_comparisons(alternative,
+    variables = "Spikes", by = "Kiki",
+    hypothesis = "b1 = b2"
+)
 ```
 
-
-
-
-
-
-
-
-
-# Frequentist vs Bayesian uncertainty
+# Frequentist vs Bayesian
 
 ```{r, eval=FALSE}
 plan(multisession)
