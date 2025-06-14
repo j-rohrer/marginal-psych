@@ -4,6 +4,7 @@ author: "Julia Rohrer"
 date: "`r Sys.Date()`"
 format: 
   html:
+    embed-resources: true
     toc: true
 ---
 
@@ -32,11 +33,29 @@ A lot of this code is just copied from the file that the authors provided on the
 The authors provided a single RMarkdown document; we only copied the relevant parts, which works better for our present purposes.
 
 ```{r readData}
-dataMain <- read.csv(here("data/bubu_kiki.csv")) |>
+dat <- read.csv(here("data/bubu_kiki.csv")) |>
     transform(
-        Spikes = ifelse(Spikes == 1, "Rounded", "Spikey"),
-        Kiki = ifelse(Kiki == 1, "Kiki", "Bubu")
+        Shape = ifelse(Spikes == 1, "Spikey", "Rounded"),
+        Word = ifelse(Kiki == 1, "Kiki", "Bubu"),
+        Congruent = factor(
+            ifelse(Congruent == 1, "Congruent", "Incongruent"), 
+            c("Incongruent", "Congruent"))
     )
+```
+
+In our analyses, there are 3 main variables of interest:
+
+1. `Shape`: The shape of the displayed word.
+2. `Word`: The word displayed.
+3. `Congruent`: A binary variable equal to 1 when the word and shape are congruent, and 0 otherwise.
+4. `rt`: The reaction time of the participant in second.
+
+Below, we show four arbitrarily-chosen observations from the dataset to illustrate the relationship between `Shape`, `Word`, and `Congruent`.
+
+```{r}
+bybind <- function(x, ...) do.call(rbind, by(x, ...))
+tab <- bybind(dat, ~ Shape + Word, FUN = \(x) x[1, c("Shape", "Word", "Congruent", "rt")])
+tt(tab, caption = "Four observations from the Bubu/Kiki dataset.")
 ```
 
 # Vincent's analysis
@@ -44,75 +63,106 @@ dataMain <- read.csv(here("data/bubu_kiki.csv")) |>
 Background on model specifications:
 
 1. Authors A fit a mixed effects model in which the main predictor of interest is a binary variable (`Congruent`) equal to 1 when Bubu+Rounded or Kiki+Spikey, and 0 otherwise.
-2. Authors B fit a mixed effects model with a multiplicative interaction between the binary `Kiki` and `Spikes` variables.
+2. Authors B fit a mixed effects model with a multiplicative interaction between the binary `Word` and `Shape` variables.
 
-The two models yield very similar results but they are not, strictly speaking, mathematically equivalent. In fact, the second model's interaction structure is slightly more flexible, as it allows us to compute estimates for every combination of the `Kiki` and `Spikes` variables, not just for congruent or incongruent pairs. In this worked example, we thus follow Authors B and fit the second model.
+The two models yield very similar results but they are not, strictly speaking, mathematically equivalent. In fact, the second model's interaction structure is slightly more flexible, as it allows us to compute estimates for every combination of the `Word` and `Shape` variables, not just for congruent or incongruent pairs. In this worked example, we leverage this flexibility by following Authors B.
 
 ```{r}
-alternative <- glmer(
-    rt ~ Spikes + Kiki + Spikes:Kiki +
-        (1 + Spikes + Kiki + Spikes:Kiki | pp),
-    data = dataMain,
+mod <- glmer(
+    rt ~ Word + Shape + Word:Shape +
+        (1 + Word + Shape + Word:Shape | pp),
+    data = dat,
     family = Gamma(link = "log")
 )
 
 # Take a look at the coefficients
-parameters(alternative)
+parameters(mod)
 ```
 
-#### What is the average reaction time for each combination of `Kiki` and `Spikes`?
+#### What is the average expected reaction time for each combination of `Word` and `Shape`?
 
 ```{r}
-avg_predictions(alternative, by = c("Kiki", "Spikes"))
+avg_predictions(mod, by = c("Word", "Shape"))
 
-plot_predictions(alternative, by = c("Kiki", "Spikes")) +
-    labs(y = "Reaction time in seconds (95% CI)", x = "")
+plot_predictions(mod, by = c("Word", "Shape")) +
+    labs(y = "Reaction time in seconds (95% CI)")
 ```
 
-#### What is the average reaction time for Congruent and Incongruent stimuli?^[Note that the `by` argument accepts any variable from the dataset, even if that variable is not a predictor in the model.]
+#### What is the average expected reaction time for Congruent and Incongruent stimuli?^[Note that the `by` argument accepts any variable from the dataset, even if that variable is not a predictor in the model.]
 
 ```{r}
-avg_predictions(alternative, by = "Congruent")
+avg_predictions(mod, by = "Congruent")
 ```
 
-#### Is the average reaction time smaller for Congruent stimuli than for Incongruent stimuli?
+Reaction time appears shorter (faster) for congruent stimuli.
+
+#### Is the average reaction time statistically distinguishable for Congruent and Incongruent stimuli?
 
 ```{r}
-avg_predictions(alternative, by = "Congruent", hypothesis = "b2 - b1 = 0")
+avg_predictions(mod, by = "Congruent", hypothesis = ~sequential)
 ```
 
-Yes, we can reject the null hypothesis that the average reaction time is the same in the Congruent and Incongruent subsets.
+Yes, we can reject the null hypothesis that the average expected reaction time is the same in the Congruent and Incongruent subsets.
 
-#### What is the average treatment effect of "Kiki" on reaction time?
+#### What is the average treatment effect of "Word" on reaction time?
 
 ```{r}
-cmp <- avg_comparisons(alternative, variables = "Kiki")
+cmp <- avg_comparisons(mod, variables = "Word")
 cmp
 ```
 
 On average, moving from "Bubu" to "Kiki" increases reaction time by `{r} sprintf("%.3f", cmp$estimate)` seconds.
 
-#### What is the conditional average treatment effect of "Kiki", for different values of "Spikes"?
+#### What is the average treatment effect of "Shape" on reaction time?
 
 ```{r}
-cmp <- avg_comparisons(alternative, variables = "Kiki", by = "Spikes")
+cmp <- avg_comparisons(mod, variables = "Shape")
 cmp
 ```
 
-On average, "Kiki" increases reaction time by `{r} sprintf("%.3f", cmp$estimate[1])` seconds when the shape is rounded, and by `{r} sprintf("%.3f", cmp$estimate[2])` seconds for spiky shapes.
+On average, moving from "Rounded" to "Spikey" reduces reaction time by `{r} sprintf("%.3f", abs(cmp$estimate))` seconds.
 
-#### Is the conditional average treatment effect of "Kiki" larger when the shape is Spikey than when the shape is Rounded?
+#### Do the estimated effect sizes of "Word" and "Shape" vary across participants, depending on the values of the other predictors in the model?
+
+This plot shows the distribution of estimated counterfactual comparisons, for the two predictors of interest, across all the participants in the study.
 
 ```{r}
-cmp <- avg_comparisons(alternative, variables = "Kiki", by = "Spikes", hypothesis = "b2 - b1 = 0")
+#| fig.asp: .4
+cmp <- comparisons(mod, variables = c("Word", "Shape"))
+ggplot(cmp, aes(x = estimate)) +
+    geom_density() +
+    facet_wrap(~contrast, scales = "free") +
+    labs(x = "Estimated individual-level counterfactual comparisons", y = "Density")
+```
+
+There appears to be considerable heterogeneity in the effects of `Word` and `Shape` across different combinations of predictors. For some participants, moving from Bubu to Kiki is expected to increase reaction time by about 0.8 seconds, whereas for others the estimated effect is negative. Similarly, there is considerable heterogeneity in the estimated individual-level association between `Shape` and reaction time.
+
+#### What is the conditional average treatment effect of "Word", for different values of "Shape"?
+
+In other words, what is the effect of `Word` at different values of the `Shape` variable?
+
+```{r}
+cmp <- avg_comparisons(mod,
+    variables = "Word",
+    by = "Shape"
+)
 cmp
 ```
 
-Yes. On average, the effect of "Kiki" on reaction time is `{r} sprintf("%.3f", cmp$estimate)` seconds larger for spiky shapes than for rounded shapes.
+On average, "Kiki" increases reaction time by `{r} sprintf("%.3f", cmp$estimate[1])` seconds when the shape is rounded, and by `{r} sprintf("%.3f", cmp$estimate[2])` seconds when the shape is spikey.  Switching from "Bubu" to "Kiki" increases reaction time, regardless of the shape.  
 
-#### What is the average treatment effect of congruence on reaction time?
+#### Is the conditional average treatment effect of "Word" larger when the shape is Rounded than when the shape is Spikey?
 
-#### Is the average treatment effect of congruence equivalent to the estimate reported in prior literature?
+```{r}
+cmp <- avg_comparisons(mod,
+    variables = "Word",
+    by = "Shape",
+    hypothesis = ~sequential
+)
+cmp
+```
+
+Yes. Although switching from "Bubu" to "Kiki" always increases reaction time, regardless of the shape, this positive effect is more pronounced when the shape is "Rounded". The difference between `Word` effect sizes under the two `Shape` conditions is `{r} sprintf("%.3f", cmp$estimate)` seconds.
 
 # Julia's analysis
 
@@ -122,7 +172,7 @@ First, we are going to analyze the data with a generalized linear mixed effects 
 
 ```{r authorstyle}
 original <- glmer(rt ~ Congruent + (1 + Congruent | pp),
-    data = dataMain,
+    data = dat,
     family = Gamma(link = "log")
 )
 
@@ -180,7 +230,7 @@ This results in an alternative model specification.
 alternative <- glmer(
     rt ~ Spikes + Kiki + Spikes:Kiki +
         (1 + Spikes + Kiki + Spikes:Kiki | pp),
-    data = dataMain,
+    data = dat,
     family = Gamma(link = "log")
 )
 
@@ -241,14 +291,14 @@ options(marginaleffects_parallel_packages = c("lme4"))
 m1 <- glmer(
   rt ~ Spikes + Kiki + Spikes:Kiki +
     (1 + Spikes + Kiki + Spikes:Kiki | pp),
-  data = dataMain,
+  data = dat,
   family = Gamma(link = "log"))
 
 p1 <- avg_predictions(m1, by = c("Spikes", "Kiki"))
 m2 <- brm(
   rt ~ Spikes + Kiki + Spikes:Kiki +
     (1 + Spikes + Kiki + Spikes:Kiki | pp),
-  data = dataMain,
+  data = dat,
   family = Gamma(link = "log"),
   cores = 4,
   backend = "cmdstanr")
