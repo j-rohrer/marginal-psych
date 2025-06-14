@@ -88,13 +88,13 @@ plot_predictions(mod, by = c("Word", "Shape")) +
     labs(y = "Reaction time in seconds (95% CI)")
 ```
 
-#### What is the average expected reaction time for Congruent and Incongruent stimuli?^[Note that the `by` argument accepts any variable from the dataset, even if that variable is not a predictor in the model.]
+#### What is the average expected reaction time for Congruent and Incongruent stimuli?
 
 ```{r}
 avg_predictions(mod, by = "Congruent")
 ```
 
-Reaction time appears shorter (faster) for congruent stimuli.
+Reaction time appears shorter (faster) for congruent stimuli.^[Note that the `by` argument accepts any variable from the dataset, even if that variable is not a predictor in the model.]
 
 #### Is the average reaction time statistically distinguishable for Congruent and Incongruent stimuli?
 
@@ -104,27 +104,18 @@ avg_predictions(mod, by = "Congruent", hypothesis = ~sequential)
 
 Yes, we can reject the null hypothesis that the average expected reaction time is the same in the Congruent and Incongruent subsets.
 
-#### What is the average treatment effect of "Word" on reaction time?
+#### What are the average treatment effects of "Shape" and "Word" on reaction time?
 
 ```{r}
-cmp <- avg_comparisons(mod, variables = "Word")
+cmp <- avg_comparisons(mod)
 cmp
 ```
 
-On average, moving from "Bubu" to "Kiki" increases reaction time by `{r} sprintf("%.3f", cmp$estimate)` seconds.
+On average, moving from "Rounded" to "Spikey" reduces reaction time by `{r} sprintf("%.3f", abs(cmp$estimate[1]))` seconds. On average, moving from "Bubu" to "Kiki" increases reaction time by `{r} sprintf("%.3f", abs(cmp$estimate[2]))` seconds.^[For a discussion on the slight difference between a difference in average predictions and an average counterfactual comparison, see Arel-Bundock (2026, Section 6.3.1).]
 
-#### What is the average treatment effect of "Shape" on reaction time?
+#### Do the estimated effects of "Word" and "Shape" vary across participants?
 
-```{r}
-cmp <- avg_comparisons(mod, variables = "Shape")
-cmp
-```
-
-On average, moving from "Rounded" to "Spikey" reduces reaction time by `{r} sprintf("%.3f", abs(cmp$estimate))` seconds.
-
-#### Do the estimated effect sizes of "Word" and "Shape" vary across participants, depending on the values of the other predictors in the model?
-
-This plot shows the distribution of estimated counterfactual comparisons, for the two predictors of interest, across all the participants in the study.
+The following plot shows the distribution of estimated counterfactual comparisons, for the two predictors of interest, across all the participants in the study.
 
 ```{r}
 #| fig.asp: .4
@@ -135,11 +126,9 @@ ggplot(cmp, aes(x = estimate)) +
     labs(x = "Estimated individual-level counterfactual comparisons", y = "Density")
 ```
 
-There appears to be considerable heterogeneity in the effects of `Word` and `Shape` across different combinations of predictors. For some participants, moving from Bubu to Kiki is expected to increase reaction time by about 0.8 seconds, whereas for others the estimated effect is negative. Similarly, there is considerable heterogeneity in the estimated individual-level association between `Shape` and reaction time.
+There appears to be considerable heterogeneity in the effects of `Word` and `Shape` across participants. For some people, moving from Bubu to Kiki is expected to increase reaction time by about 0.8 seconds whereas, for others, the estimated effect is negative. Similarly, there is a fair bit heterogeneity in the estimated individual-level association between `Shape` and `rt`.
 
-#### What is the conditional average treatment effect of "Word", for different values of "Shape"?
-
-In other words, what is the effect of `Word` at different values of the `Shape` variable?
+#### What is average treatment effect of "Word", for different values of "Shape"? (CATE)
 
 ```{r}
 cmp <- avg_comparisons(mod,
@@ -149,9 +138,9 @@ cmp <- avg_comparisons(mod,
 cmp
 ```
 
-On average, "Kiki" increases reaction time by `{r} sprintf("%.3f", cmp$estimate[1])` seconds when the shape is rounded, and by `{r} sprintf("%.3f", cmp$estimate[2])` seconds when the shape is spikey.  Switching from "Bubu" to "Kiki" increases reaction time, regardless of the shape.  
+On average, "Kiki" increases reaction time by `{r} sprintf("%.3f", cmp$estimate[1])` seconds when the shape is rounded, and by `{r} sprintf("%.3f", cmp$estimate[2])` seconds when the shape is spikey. Switching from "Bubu" to "Kiki" increases reaction time, regardless of the shape.  
 
-#### Is the conditional average treatment effect of "Word" larger when the shape is Rounded than when the shape is Spikey?
+#### Is the conditional average treatment effect of "Word" larger when the shape is Rounded rather than Spikey?
 
 ```{r}
 cmp <- avg_comparisons(mod,
@@ -162,7 +151,7 @@ cmp <- avg_comparisons(mod,
 cmp
 ```
 
-Yes. Although switching from "Bubu" to "Kiki" always increases reaction time, regardless of the shape, this positive effect is more pronounced when the shape is "Rounded". The difference between `Word` effect sizes under the two `Shape` conditions is `{r} sprintf("%.3f", cmp$estimate)` seconds.
+Yes. Although switching from "Bubu" to "Kiki" always increases reaction time, regardless of the shape, this positive effect is more pronounced when the shape is "Rounded". The difference between the `Word` effect sizes under the two `Shape` conditions is `{r} sprintf("%.3f", cmp$estimate)` seconds.
 
 # Julia's analysis
 
