@@ -1,0 +1,126 @@
+---
+title: "Example 2: Relationship Status and the Importance of Friends"
+author: "Julia Rohrer"
+date: "`r Sys.Date()`"
+format: 
+  html:
+    toc: true
+---
+
+```{r setup, include=FALSE}
+source(here::here("scripts/load.R"))
+options(marginaleffects_safe = FALSE)
+options(marginaleffects_print_type = FALSE)
+options(marginaleffects_print_style = "tinytable")
+options(width = 300)
+knitr::opts_chunk$set(error = TRUE, echo = TRUE, warning = FALSE, message = FALSE)
+knitr::opts_chunk$set(error = TRUE, echo = TRUE)
+```
+
+Before we start, let's execute a helper script that loads the necessary dependencies.
+
+```{r}
+source(here::here("scripts/load.R"))
+```
+
+# Overview
+
+This document contains example 2, in which we analyze the association between relationship status and the importance people assign to friends.
+Data can be retrieved from https://osf.io/gj6x5/files/osfstorage/63b81606c8da86094edf234b. 
+
+# Bayesian multilevel regression model
+
+```{r load_fit}
+# Read the data
+dat <- read.csv(here("data/start.csv"))
+
+# Display the first few rows of data
+head(dat)
+
+# Restrict to range that we can model well
+dat <- dat[dat$sex != 3, ] # exclude 5 people who reported a gender distinct from male/female
+dat <- dat[dat$age < 60, ] # exclude people over the age of 60
+
+dat <- dat[complete.cases(dat[, c("age", "sex", "partner_any", "IMP_friends_Start")]),]
+
+dat$sex <- as.factor(dat$sex)
+
+table(dat$age)
+table(dat$sex)
+table(dat$partner_any)
+
+mod <- lm(IMP_friends_Start ~ ns(age, df = 3) + sex + partner_any + ns(age, df = 3):partner_any + sex:partner_any, data = dat)
+
+
+```
+
+# Interpretation with `marginaleffects`
+
+
+```{r}
+
+# Effects of partner_any
+avg_comparisons(mod, variables = "partner_any")
+avg_comparisons(mod, variables = "partner_any", by = "sex")
+avg_comparisons(mod, variables = "partner_any", by = "age")
+
+comp <- avg_comparisons(mod, variables = "partner_any", by = "age")
+
+ggplot(comp, aes(x = age, y = estimate, ymin = conf.low, ymax = conf.high)) +
+  geom_point() +
+  geom_ribbon(alpha = .1) +
+  geom_hline(yintercept = 0)
+
+
+
+# Association with age
+pred <- predictions(mod, by = "age", newdata = "mean") # Prediction when holding all variables at mean
+ggplot(pred, aes(x = age, y = estimate, ymin = conf.low, ymax = conf.high)) +
+  geom_line() +
+  geom_point() +
+  geom_ribbon(alpha = .1) +
+  coord_cartesian(ylim = c(1, 5))
+
+# Association with age linear
+mod_lin <- lm(IMP_friends_Start ~ age + sex + partner_any + age:partner_any + sex:partner_any, data = dat)
+
+pred_lin <- predictions(mod_lin, by = "age", newdata = "mean") # Prediction when holding all variables at mean
+ggplot(pred_lin, aes(x = age, y = estimate, ymin = conf.low, ymax = conf.high)) +
+  geom_line() +
+  geom_point() +
+  geom_ribbon(alpha = .1)  +
+  coord_cartesian(ylim = c(1, 5))
+
+
+# Association with age categorical
+mod_cat <- lm(IMP_friends_Start ~ as.factor(age) + sex + partner_any + as.factor(age):partner_any + sex:partner_any, data = dat)
+
+pred_cat <- predictions(mod_cat, by = "age", newdata = "mean") # Prediction when holding all variables at mean
+ggplot(pred_cat, aes(x = age, y = estimate, ymin = conf.low, ymax = conf.high)) +
+  geom_line(aes(group = 1)) +
+  geom_point() +
+  geom_ribbon(alpha = .1) +
+  coord_cartesian(ylim = c(1, 5))
+
+
+```
+
+# Ordinal robustness check
+
+```{r}
+mod_ord <- brm(IMP_friends_Start ~ ns(age, df = 3) + sex + partner_any + ns(age, df = 3):partner_any + sex:partner_any, 
+               family = cumulative("probit"),
+               cores = 4,
+               data = dat)
+
+avg_comparisons(mod_ord, variables = "partner_any", type = "link")
+avg_comparisons(mod_ord, variables = "partner_any", by = "sex", type = "link")
+
+comp_ord <- avg_comparisons(mod_ord, variables = "partner_any", by = "age", type = "link")
+
+ggplot(comp_ord, aes(x = age, y = estimate, ymin = conf.low, ymax = conf.high)) +
+  geom_point() +
+  geom_ribbon(alpha = .1) +
+  geom_hline(yintercept = 0)  +
+  coord_cartesian(ylim = c(1, 5))
+``` 
