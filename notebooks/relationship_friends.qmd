@@ -118,6 +118,8 @@ mod_ord <- brm(IMP_friends_Start ~ ns(age, df = 3) + sex + partner_any + ns(age,
 avg_comparisons(mod_ord, variables = "partner_any")
 
 # repeat what we did above but on the link scale
+# I think of these as the numbers you get by putting together the coefficients
+
 avg_comparisons(mod_ord, variables = "partner_any", type = "link")
 avg_comparisons(mod_ord, variables = "partner_any", by = "sex", type = "link")
 comp_ord <- avg_comparisons(mod_ord, variables = "partner_any", by = "age", type = "link")
@@ -138,14 +140,15 @@ dat$IMP_friends_Start_factor <- as.factor(dat$IMP_friends_Start)
 # CLM
 mod_clm <- clm(IMP_friends_Start_factor ~ ns(age, df = 3) + sex + partner_any + ns(age, df = 3):partner_any + sex:partner_any, data = dat)
 
-# This looks similar enough to the Bayesian version
+# This looks similar enough to the Bayesian version, so I dont think the models does anything weird
 avg_comparisons(mod_clm, variables = "partner_any")
 
 
 # Nifty trick
+# This also seems close enough from what I would expect based on the lm() above
 avg_comparisons(mod_clm, variables = "partner_any", hypothesis = ~ I(sum(x * 1:5)))
 
-# But where does this number come from???
+# But where does this number come from??? It seems to have the wrong sign
 avg_comparisons(mod_clm, variables = "partner_any", type = "linear.predictor")
 
 
