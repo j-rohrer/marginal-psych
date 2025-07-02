@@ -36,11 +36,16 @@ dat <- read.csv(here("data/deskmates.csv"))
 # Arbitrary subset of 60 classes to make model-fitting less tedious
 dat <- dat[dat$class_id %in% unique(dat$class_id)[1:60], ]
 
+# Keep complete cases
+dat <- dat[complete.cases(dat),]
+
+
 # Label focal variables
 dat <- transform(dat,
     gender = factor(girl_match, label = c("Boys", "Mixed", "Girls")),
     deskmate = factor(deskmate, label = c("Different desk", "Same desk")),
-    gpa_gap = factor(ifelse(diff_gpa > median(diff_gpa, na.rm = TRUE), "High", "Low"))
+    gpa_gap = factor(ifelse(diff_gpa < mean(diff_gpa, na.rm = TRUE) - sd(diff_gpa, na.rm = TRUE), "Low", 
+                            ifelse(diff_gpa > mean(diff_gpa, na.rm = TRUE) + sd(diff_gpa, na.rm = TRUE), "High", "Mid")))
 )
 
 # Display the first few rows of data
@@ -105,7 +110,7 @@ avg_comparisons(mod, variables = "deskmate", type = "link")
 avg_comparisons(mod, variables = "deskmate", by = "gender")
 ```
 
-#### Is the effect of sharing a desk stronger for students on girls-only desks, relative to the effect of sharing a desk for students on mixed-gender desks?
+#### Pairwise comparisons, e.g.: Is the effect of sharing a desk stronger for students on girls-only desks, relative to the effect of sharing a desk for students on mixed-gender desks?
 
 ```{r}
 cmp <- avg_comparisons(mod,
@@ -118,30 +123,35 @@ cmp
 
 Yes, the effect of sharing a desk on the probability of forming a friendship is `{r} sprintf("%.1f", cmp$estimate[3] * 100)` percentage points stronger for students on girls-only desks than for students on mixed-gender desks. Sharing a desk "works better" as a friendship-forming mechanism on shared-gender desks.
 
-#### What is the average treatment effect of sharing a desk for students with high and low differences in GPA?
+#### Is the effect of sharing a desk stronger for students on gender-matched desks, relative to the effect of sharing a desk for students on mixed-gender desks?
 
 ```{r}
-cate <- avg_comparisons(mod,
+cmp <- avg_comparisons(mod,
     variables = "deskmate",
-    by = "gpa_gap"
+    by = "gender",
+    hypothesis = "(b1 + b3)/2 = b2"
 )
-cate
+cmp
 ```
 
-When the gap in GPA is high, sharing a desk increases the probability of forming a friendship by `{r} sprintf("%.1f", cate$estimate[3] * 100)` percentage points. When the gap in GPA is low, sharing a desk increases the probability of forming a friendship by `{r} sprintf("%.1f", cate$estimate[2] * 100)` percentage points.
+Yes, the effect of sharing a desk on the probability of forming a friendship is `{r} sprintf("%.1f", cmp$estimate[3] * 100)` percentage points stronger for students on girls-only desks than for students on mixed-gender desks. Sharing a desk "works better" as a friendship-forming mechanism on shared-gender desks.
 
-However, the difference these two estimates is *not* statistically significant at the 5% level.
+
+#### What is the average treatment effect of sharing a desk for students with high and low differences in GPA, accounting for gender?
 
 ```{r}
 avg_comparisons(mod,
-    variables = "deskmate",
-    by = "gpa_gap",
-    hypothesis = ~pairwise
-)
+                variables = "deskmate",
+                by = "diff_gpa",
+                newdata = datagrid(diff_gpa = c(mean(dat$diff_gpa, na.rm = TRUE) - sd(dat$diff_gpa, na.rm = TRUE), 
+                                                mean(dat$diff_gpa, na.rm = TRUE) + sd(dat$diff_gpa, na.rm = TRUE)),
+                                   grid_type = "counterfactual"))
+
 ```
 
-#### Other tests
 
+
+#### Other tests
 ```{r}
 #| eval: false
 avg_comparisons(mod,
