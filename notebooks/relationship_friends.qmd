@@ -41,6 +41,7 @@ head(dat)
 dat <- dat[dat$sex != 3, ] # exclude 5 people who reported a gender distinct from male/female
 dat <- dat[dat$age < 60, ] # exclude people over the age of 60
 
+# Limit to complete cases
 dat <- dat[complete.cases(dat[, c("age", "sex", "partner_any", "IMP_friends_Start")]),]
 
 dat$sex <- as.factor(dat$sex)
@@ -49,8 +50,8 @@ table(dat$age)
 table(dat$sex)
 table(dat$partner_any)
 
+# linear model
 mod <- lm(IMP_friends_Start ~ ns(age, df = 3) + sex + partner_any + ns(age, df = 3):partner_any + sex:partner_any, data = dat)
-
 
 ```
 
@@ -72,7 +73,7 @@ ggplot(comp, aes(x = age, y = estimate, ymin = conf.low, ymax = conf.high)) +
   geom_hline(yintercept = 0)
 
 
-
+# You can ignore this part, I'm planning to throw in some plots on the association between age and the outcome
 # Association with age
 pred <- predictions(mod, by = "age", newdata = "mean") # Prediction when holding all variables at mean
 ggplot(pred, aes(x = age, y = estimate, ymin = conf.low, ymax = conf.high)) +
@@ -108,19 +109,47 @@ ggplot(pred_cat, aes(x = age, y = estimate, ymin = conf.low, ymax = conf.high)) 
 # Ordinal robustness check
 
 ```{r}
+# In brms, this all works fine
 mod_ord <- brm(IMP_friends_Start ~ ns(age, df = 3) + sex + partner_any + ns(age, df = 3):partner_any + sex:partner_any, 
                family = cumulative("probit"),
                cores = 4,
                data = dat)
 
+avg_comparisons(mod_ord, variables = "partner_any")
+
+# repeat what we did above but on the link scale
 avg_comparisons(mod_ord, variables = "partner_any", type = "link")
 avg_comparisons(mod_ord, variables = "partner_any", by = "sex", type = "link")
-
 comp_ord <- avg_comparisons(mod_ord, variables = "partner_any", by = "age", type = "link")
-
 ggplot(comp_ord, aes(x = age, y = estimate, ymin = conf.low, ymax = conf.high)) +
   geom_point() +
   geom_ribbon(alpha = .1) +
-  geom_hline(yintercept = 0)  +
-  coord_cartesian(ylim = c(1, 5))
+  geom_hline(yintercept = 0)
+
+
+# Trying to get the same without going Bayesian
+
+library("MASS")
+library("ordinal")
+library("marginaleffects")
+
+dat$IMP_friends_Start_factor <- as.factor(dat$IMP_friends_Start)
+
+# CLM
+mod_clm <- clm(IMP_friends_Start_factor ~ ns(age, df = 3) + sex + partner_any + ns(age, df = 3):partner_any + sex:partner_any, data = dat)
+
+# This looks similar enough to the Bayesian version
+avg_comparisons(mod_clm, variables = "partner_any")
+
+
+# Nifty trick
+avg_comparisons(mod_clm, variables = "partner_any", hypothesis = ~ I(sum(x * 1:5)))
+
+# But where does this number come from???
+avg_comparisons(mod_clm, variables = "partner_any", type = "linear.predictor")
+
+
+
+
+
 ``` 
