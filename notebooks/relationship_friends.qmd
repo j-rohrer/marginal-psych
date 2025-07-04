@@ -50,8 +50,18 @@ table(dat$age)
 table(dat$sex)
 table(dat$partner_any)
 
+summary(lm(IMP_friends_Start ~ partner_any, data = dat))
+
 # linear model
-mod <- lm(IMP_friends_Start ~ ns(age, df = 3) + sex + partner_any + ns(age, df = 3):partner_any + sex:partner_any, data = dat)
+#mod_no_interact <- lm(IMP_friends_Start ~ bs(age, df = 3) + sex + partner_any, data = dat)
+
+mod <- lm(IMP_friends_Start ~ bs(age, df = 3) + sex + partner_any + bs(age, df = 3):partner_any + sex:partner_any, data = dat)
+
+#mod_high <- lm(IMP_friends_Start ~ bs(age, df = 5) + sex + partner_any + bs(age, df = 3):partner_any + sex:partner_any, data = dat)
+
+# full interaction?
+#mod_flex <- lm(IMP_friends_Start ~ bs(age, df = 3)*sex*partner_any, data = dat)
+
 
 ```
 
@@ -110,7 +120,7 @@ ggplot(pred_cat, aes(x = age, y = estimate, ymin = conf.low, ymax = conf.high)) 
 
 ```{r}
 # In brms, this all works fine
-mod_ord <- brm(IMP_friends_Start ~ ns(age, df = 3) + sex + partner_any + ns(age, df = 3):partner_any + sex:partner_any, 
+mod_ord <- brm(IMP_friends_Start ~ bs(age, df = 3) + sex + partner_any + bs(age, df = 3):partner_any + sex:partner_any, 
                family = cumulative("probit"),
                cores = 4,
                data = dat)
@@ -138,7 +148,7 @@ library("marginaleffects")
 dat$IMP_friends_Start_factor <- as.factor(dat$IMP_friends_Start)
 
 # CLM
-mod_clm <- clm(IMP_friends_Start_factor ~ ns(age, df = 3) + sex + partner_any + ns(age, df = 3):partner_any + sex:partner_any, data = dat)
+mod_clm <- clm(IMP_friends_Start_factor ~ bs(age, df = 3) + sex + partner_any + bs(age, df = 3):partner_any + sex:partner_any, data = dat)
 
 # This looks similar enough to the Bayesian version, so I dont think the models does anything weird
 avg_comparisons(mod_clm, variables = "partner_any")
