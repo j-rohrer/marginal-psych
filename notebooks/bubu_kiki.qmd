@@ -8,15 +8,6 @@ format:
     toc: true
 ---
 
-```{r setup}
-#| include: false
-options(marginaleffects_safe = FALSE)
-options(marginaleffects_print_type = FALSE)
-options(marginaleffects_print_style = "tinytable")
-options(width = 300)
-knitr::opts_chunk$set(error = TRUE, echo = TRUE, warning = FALSE, message = FALSE)
-```
-
 # Overview
 
 Substantively, we are looking at the bouba/kiki effect: This is the observation that people tend to associate particular sounds with particular shapes (e.g., rounded shapes with bouba, angular shapes with kiki), i.e., sound-shape mapping. [Heyman et al. (2019)](https://journals.sagepub.com/doi/10.1177/0956797619875482) conducted a replication study of [Hung et al. (2017)](https://journals.sagepub.com/doi/full/10.1177/0956797616677313) to test whether congruent stimuli (bubi spelled out in a round shape, kiki spelled out in an angular shape) become visible faster. If this were the case, it would indicate that sound-shape mapping occurs prior to conscious awareness.

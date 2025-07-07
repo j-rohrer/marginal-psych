@@ -7,16 +7,6 @@ format:
     toc: true
 ---
 
-```{r setup, include=FALSE}
-source(here::here("scripts/load.R"))
-options(marginaleffects_safe = FALSE)
-options(marginaleffects_print_type = FALSE)
-options(marginaleffects_print_style = "tinytable")
-options(width = 300)
-knitr::opts_chunk$set(error = TRUE, echo = TRUE, warning = FALSE, message = FALSE)
-knitr::opts_chunk$set(error = TRUE, echo = TRUE)
-```
-
 Before we start, let's execute a helper script that loads the necessary dependencies.
 
 ```{r}
@@ -161,8 +151,11 @@ avg_comparisons(mod_clm, variables = "partner_any", hypothesis = ~ I(sum(x * 1:5
 # But where does this number come from??? It seems to have the wrong sign
 avg_comparisons(mod_clm, variables = "partner_any", type = "linear.predictor")
 
-
-
-
-
+# VAB: here's how this is computed
+# I suppose it might be a good idea for `marginaleffects` to remove duplicated rows in this case. I'll open an issue on Github about it.
+d0 <- transform(dat, partner_any = 0)
+d1 <- transform(dat, partner_any = 1)
+p0 <- predict(mod_clm, newdata = d0, type = "linear.predictor")
+p1 <- predict(mod_clm, newdata = d1, type = "linear.predictor")
+mean(p1$eta1 - p0$eta1)
 ``` 
