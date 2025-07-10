@@ -43,15 +43,48 @@ table(dat$partner_any)
 summary(lm(IMP_friends_Start ~ partner_any, data = dat))
 
 # linear model
-#mod_no_interact <- lm(IMP_friends_Start ~ bs(age, df = 3) + sex + partner_any, data = dat)
+mod_no_interact <- lm(IMP_friends_Start ~ bs(age, df = 3) + sex + partner_any, data = dat)
 
-mod <- lm(IMP_friends_Start ~ bs(age, df = 3) + sex + partner_any + bs(age, df = 3):partner_any + sex:partner_any, data = dat)
+mod_3 <- lm(IMP_friends_Start ~ bs(age, df = 3) + sex + partner_any + bs(age, df = 3):partner_any + sex:partner_any + sex:bs(age, df = 3), data = dat)
+mod_4 <- lm(IMP_friends_Start ~ bs(age, df = 4) + sex + partner_any + bs(age, df = 4):partner_any + sex:partner_any + sex:bs(age, df = 4), data = dat)
 
-#mod_high <- lm(IMP_friends_Start ~ bs(age, df = 5) + sex + partner_any + bs(age, df = 3):partner_any + sex:partner_any, data = dat)
+mod_high <- lm(IMP_friends_Start ~ bs(age, df = 5) + sex + partner_any + bs(age, df = 3):partner_any + sex:partner_any, data = dat)
 
 # full interaction?
-#mod_flex <- lm(IMP_friends_Start ~ bs(age, df = 3)*sex*partner_any, data = dat)
+mod_flex <- lm(IMP_friends_Start ~ bs(age, df = 4)*sex*partner_any, data = dat)
 
+
+```
+# Visualize associations with age
+```{r}
+
+age_lin <- lm(IMP_friends_Start ~ age, data = dat)
+age_cat <- lm(IMP_friends_Start ~ as.factor(age), data = dat)
+age_smooth <- lm(IMP_friends_Start ~ bs(age, df = 4), data = dat)
+#age_poly <- lm(IMP_friends_Start ~ age + I(age^2) , data = dat)
+
+pred_lin <- avg_predictions(age_lin, by = "age")
+pred_cat <- avg_predictions(age_cat, by = "age")
+pred_smooth <- avg_predictions(age_smooth, by = "age")
+#pred_poly <- avg_predictions(age_poly, by = "age")
+
+ggplot() +
+  # categorical
+  geom_line(data = pred_cat, aes(x = age, y = estimate), color = "#F0E442") +
+  geom_ribbon(data = pred_cat, aes(x = age, ymin = conf.low, ymax = conf.high), alpha = .2, fill = "#F0E442") +
+  # linear
+  geom_line(data = pred_lin, aes(x = age, y = estimate), color = "#0072B2") +
+  geom_ribbon(data = pred_lin, aes(x = age, ymin = conf.low, ymax = conf.high), alpha = .2, fill = "#0072B2") +
+  # smoothed
+  geom_line(data = pred_smooth, aes(x = age, y = estimate), color = "#009E73") +
+  geom_ribbon(data = pred_smooth, aes(x = age, ymin = conf.low, ymax = conf.high), alpha = .2, fill = "#009E73") +
+  coord_cartesian(ylim = c(2.5, 5)) +
+  # poly
+  #geom_line(data = pred_poly, aes(x = age, y = estimate), color = "#CC79A7") +
+  #geom_ribbon(data = pred_poly, aes(x = age, ymin = conf.low, ymax = conf.high), alpha = .2, fill = "#CC79A7") +
+  xlab("Age") +
+  ylab("Importance of friends (95% CI)")
+ggsave("Plots/age.png", width = 4, height = 3)
 
 ```
 
