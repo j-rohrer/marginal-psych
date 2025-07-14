@@ -1,12 +1,26 @@
-# Figure 2 Binary Logistic Regression
-# Author: Julia Rohrer
-# Date: Generated from Quarto document
+---
+title: "Figure 2: Logit scale"
+author: "Julia Rohrer"
+date: "`r Sys.Date()`"
+format: 
+  html:
+    toc: true
+---
 
+Before we start, let's execute a helper script that loads the necessary dependencies.
+
+```{r}
 source(here::here("scripts/load.R"))
+```
 
 # Overview
-#
-# In this document, we generate a simple illustration of how quantities can be calculated on different scales.
+
+Here we are going to generate Figure 2 which visualizes different scales in binary logistic regression.
+Annotations were added manually in PowerPoint.
+
+# Generate the figure
+
+```{r figure}
 
 # Define the inverse logit function
 inv_logit <- function(x) {
@@ -23,21 +37,22 @@ df$probability <- inv_logit(df$log_odds)
 
 # Plot
 
-# color scheme
+# Color scheme
 color_prediction <- "#0072B2"
 color_comparison <- "#56B4E9"
 color_slope <- "#009E73"
 color_neutral <- "#BBBBBB"
 
+# Points that will be highlighted in the figure
 low_point <- 0
 inv_logit(low_point)
 high_point <- 4
 inv_logit(high_point)
 
+
 ggplot(df, aes(x = log_odds, y = probability)) +
   geom_line() +
-
-  # Guideline prediction
+  # Guideline prediction (dashed gray lines in the plot)
   geom_segment(
     x = -10,
     xend = low_point,
@@ -70,7 +85,7 @@ ggplot(df, aes(x = log_odds, y = probability)) +
     linetype = "dashed",
     alpha = .80
   ) +
-  # Comparison
+  # Comparison (blue slope triangle)
   geom_segment(
     x = low_point,
     xend = high_point,
@@ -100,3 +115,7 @@ ggplot(df, aes(x = log_odds, y = probability)) +
   xlab("Log-odds scale") +
   ylab("Probability scale")
 ggsave(here("plots/logit_scale_raw.png"), width = 4, height = 3)
+
+```
+
+
