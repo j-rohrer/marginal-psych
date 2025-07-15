@@ -11,6 +11,7 @@ Before we start, let's execute a helper script that loads the necessary dependen
 
 ```{r}
 source(here::here("scripts/load.R"))
+
 ```
 
 # Overview
@@ -18,9 +19,9 @@ source(here::here("scripts/load.R"))
 This document contains example 2, in which we analyze the association between relationship status and the importance people assign to friends.
 Data can be retrieved from https://osf.io/gj6x5/files/osfstorage/63b81606c8da86094edf234b. 
 
-# Read the data
+# Read and clean the data
 
-```{r load_fit}
+```{r}
 # Read the data
 dat <- read.csv(here("data/start.csv"))
 
@@ -37,39 +38,53 @@ table(dat$age)
 table(dat$sex)
 table(dat$partner_any)
 
-
+dat <- dat |>
+  mutate(sex = factor(sex, levels = c(1, 2), labels = c("female", "male"))) |>
+  rename(partner = partner_any,
+         gender = sex,
+         friendship_importance = IMP_friends_Start)
 ```
 # Visualize associations with age
 
 ```{r}
+# Change colors
+# Change visuals of the categorical
 
-age_lin <- lm(IMP_friends_Start ~ age, data = dat)
-age_cat <- lm(IMP_friends_Start ~ as.factor(age), data = dat)
-age_smooth <- lm(IMP_friends_Start ~ bs(age, df = 4), data = dat)
-#age_poly <- lm(IMP_friends_Start ~ age + I(age^2) , data = dat)
+age_lin <- lm(friendship_importance ~ age, data = dat)
+age_cat <- lm(friendship_importance ~ as.factor(age), data = dat)
+age_smooth <- lm(friendship_importance ~ bs(age, df = 4), data = dat)
 
 pred_lin <- avg_predictions(age_lin, by = "age")
 pred_cat <- avg_predictions(age_cat, by = "age")
 pred_smooth <- avg_predictions(age_smooth, by = "age")
-#pred_poly <- avg_predictions(age_poly, by = "age")
+
+# Expand categorical predictions to plot them as step function including ribbon
+pred_cat_expanded <- data.frame(matrix(NA, nrow = length(rep(pred_cat$estimate, each = 100)), ncol = 4))
+names(pred_cat_expanded) <- c("age", "estimate", "conf.low", "conf.high")
+pred_cat_expanded$age <- seq(from = min(pred_cat$age), to = (max(pred_cat$age) + 0.999999), length.out = nrow(pred_cat_expanded))
+pred_cat_expanded$estimate <- rep(pred_cat$estimate, each = 100)
+pred_cat_expanded$conf.low <- rep(pred_cat$conf.low, each = 100)
+pred_cat_expanded$conf.high <- rep(pred_cat$conf.high, each = 100)
+
+# color
+col_cat <- "#E69F00"
+col_lin <- "#D55E00"
+col_smooth <- "#CC79A7"
 
 ggplot() +
   # categorical
-  geom_line(data = pred_cat, aes(x = age, y = estimate), color = "#F0E442") +
-  geom_ribbon(data = pred_cat, aes(x = age, ymin = conf.low, ymax = conf.high), alpha = .2, fill = "#F0E442") +
+  geom_line(data = pred_cat_expanded, aes(x = age, y = estimate), color = col_cat) +
+  geom_ribbon(data = pred_cat_expanded, aes(x = age, ymin = conf.low, ymax = conf.high), alpha = .2, fill = col_cat) +
   # linear
-  geom_line(data = pred_lin, aes(x = age, y = estimate), color = "#0072B2") +
-  geom_ribbon(data = pred_lin, aes(x = age, ymin = conf.low, ymax = conf.high), alpha = .2, fill = "#0072B2") +
+  geom_line(data = pred_lin, aes(x = age, y = estimate), color = col_lin) +
+  geom_ribbon(data = pred_lin, aes(x = age, ymin = conf.low, ymax = conf.high), alpha = .2, fill = col_lin) +
   # smoothed
-  geom_line(data = pred_smooth, aes(x = age, y = estimate), color = "#009E73") +
-  geom_ribbon(data = pred_smooth, aes(x = age, ymin = conf.low, ymax = conf.high), alpha = .2, fill = "#009E73") +
+  geom_line(data = pred_smooth, aes(x = age, y = estimate), color = col_smooth) +
+  geom_ribbon(data = pred_smooth, aes(x = age, ymin = conf.low, ymax = conf.high), alpha = .2, fill = col_smooth) +
   coord_cartesian(ylim = c(2.5, 5)) +
-  # poly
-  #geom_line(data = pred_poly, aes(x = age, y = estimate), color = "#CC79A7") +
-  #geom_ribbon(data = pred_poly, aes(x = age, ymin = conf.low, ymax = conf.high), alpha = .2, fill = "#CC79A7") +
   xlab("Age") +
   ylab("Importance of friends (95% CI)")
-ggsave("Plots/age.png", width = 4, height = 3)
+ggsave("plots/age.png", width = 4, height = 3)
 
 ```
 
@@ -81,13 +96,13 @@ ggsave("Plots/age.png", width = 4, height = 3)
 
 ```{r}
 
-mod <- lm(IMP_friends_Start ~ bs(age, df = 4) + sex + partner_any +
-            bs(age, df = 4):sex + partner_any:sex + bs(age, df = 4):partner_any, data = dat)
+mod <- lm(friendship_importance ~ bs(age, df = 4) + gender + partner +
+            bs(age, df = 4):gender + partner:gender + bs(age, df = 4):partner, data = dat)
 
-avg_comparisons(mod, variables = "partner_any")
-avg_comparisons(mod, variables = "partner_any", by = "sex")
+avg_comparisons(mod, variables = "partner")
+avg_comparisons(mod, variables = "partner", by = "gender")
 
-comp <- avg_comparisons(mod, variables = "partner_any", by = "age")
+comp <- avg_comparisons(mod, variables = "partner", by = "age")
 
 ggplot(comp, aes(x = age, y = estimate, ymin = conf.low, ymax = conf.high)) +
   geom_line() +
@@ -107,16 +122,16 @@ ggplot(comp, aes(x = age, y = estimate, ymin = conf.low, ymax = conf.high)) +
 # Ordinal robustness check
 
 ```{r}
-dat$IMP_friends_Start_factor <- factor(dat$IMP_friends_Start, ordered = TRUE)
+dat$friendship_importance_factor <- factor(dat$friendship_importance, ordered = TRUE)
 
-mod_ord <- clm(IMP_friends_Start_factor ~ bs(age, df = 4) + sex + partner_any +
-            bs(age, df = 4):sex + partner_any:sex + bs(age, df = 4):partner_any, 
+mod_ord <- clm(friendship_importance_factor ~ bs(age, df = 4) + gender + partner +
+            bs(age, df = 4):gender + partner:gender + bs(age, df = 4):partner, 
             data = dat,
             link = "probit")
 
-avg_comparisons(mod_ord, variables = "partner_any")
+avg_comparisons(mod_ord, variables = "partner")
 
-avg_comparisons(mod_ord, variables = "partner_any", hypothesis = ~ I(sum(x * 1:5)))
+avg_comparisons(mod_ord, variables = "partner", hypothesis = ~ I(sum(x * 1:5)))
 
 ``` 
 
