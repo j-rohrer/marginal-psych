@@ -167,7 +167,7 @@ ggsave(here("plots/fig3c.png"), width = 3, height = 3)
 
 ### Testing the interaction
 ```{r}
-avg_comparisons(mod2, variables = "shape", by = "word")
+avg_comparisons(mod2, variables = "shape", by = "word", hypothesis = "b2- b1 = 0")
 
 ```
 
@@ -181,38 +181,45 @@ Reaction time appears shorter (faster) for congruent stimuli.^[Note that the `by
 
 
 
-# HIER WEITER
-# Restructure more nicely
-# Add: g-computation, Frequentist versus Bayesian
+# Additionally taking into account the uncertainty in the random effects
+So far, we only took into account the uncertainty in the fixed-effect parameters.
+This could understate the total uncertainty in our predictions and comparisons, as they do include the random effects.
 
-# Frequentist vs Bayesian
+## Frequentist solution
+```{r, eval = FALSE}
+# At the point of writing, this requires the dev version of marginaleffects
 
-<!-- ```{r, eval=FALSE} -->
-<!-- plan(multisession) -->
-<!-- options(marginaleffects_inferences_parallel = TRUE) -->
-<!-- options(marginaleffects_parallel_packages = c("lme4")) -->
+remotes::install_github("vincentarelbundock/marginaleffects")
 
-<!-- m1 <- glmer( -->
-<!--   reaction_time ~ Spikes + Kiki + Spikes:Kiki + -->
-<!--     (1 + Spikes + Kiki + Spikes:Kiki | participant), -->
-<!--   data = dat, -->
-<!--   family = Gamma(link = "log")) -->
+library(tictoc)
+plan(multisession, workers = 8) 
+options(marginaleffects_inferences_parallel = TRUE) 
 
-<!-- p1 <- avg_predictions(m1, by = c("Spikes", "Kiki")) -->
-<!-- m2 <- brm( -->
-<!--   reaction_time ~ Spikes + Kiki + Spikes:Kiki + -->
-<!--     (1 + Spikes + Kiki + Spikes:Kiki | participant), -->
-<!--   data = dat, -->
-<!--   family = Gamma(link = "log"), -->
-<!--   cores = 4, -->
-<!--   backend = "cmdstanr") -->
+options(marginaleffects_parallel_packages = c("lme4")) 
 
-<!-- p2 <- avg_predictions(m2, by = c("Spikes", "Kiki")) -->
-<!-- p1 -->
-<!-- p2 -->
+tic()
+inferences <- avg_comparisons(mod2, 
+                              variables = "shape", 
+                              by = "word", 
+                              hypothesis = "b2- b1 = 0") |>
+  inferences(method = "boot", R = 5, parallel = "multicore")
+toc()
+# This takes very long, 108 seconds for R = 5 on my machine
 
-<!-- ## commented out because it takes too long for some reason I don't have time to figure out -->
-<!-- # p2 <- avg_predictions(alternative, by = c("Spikes", "Kiki")) |> inferences("rsample") -->
-<!-- ``` -->
+```
 
-<!-- # Probably also do that g-computation thing Solomon suggested -->
+## Bayesian solution
+
+
+```{r, eval=FALSE} 
+
+tic()
+mod2_bayesian <- brm( 
+   reaction_time ~ word + shape + word:shape + 
+     (1 + word + shape + word:shape | participant), 
+   data = dat, 
+   family = Gamma(link = "log"), 
+   cores = 4) 
+avg_predictions(mod2_bayesian, by = c("word", "shape")) 
+toc()
+```
