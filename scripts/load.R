@@ -2,6 +2,7 @@
 
 library(lme4)
 library(brms)
+library(dplyr)
 library(marginaleffects)
 library(haven)
 library(splines)
