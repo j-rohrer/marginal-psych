@@ -139,33 +139,37 @@ parameters(mod2)
 avg_predictions(mod2, by = c("word", "shape"))
 
 mod2_predictions <- avg_predictions(mod2, by = c("word", "shape"))
+mod2_predictions$congruence <- c(1, 0, 0, 1)
 
 plot_predictions(mod2, by = c("word", "shape"), gray = TRUE) +
     labs(x = "Displayed word",
          y = "Reaction time in seconds (95% CI)",
          shape = "Shape") +
     coord_cartesian(ylim = c(2.5, 4.5))
-ggsave(here("plots/fig3c.png"), width = 3, height = 3)
-#
-# ggplot(mod2_predictions, 
-#        aes(x = as.factor(word), 
-#            y = estimate, 
-#            group = shape, 
-#            shape = as.factor(shape), 
-#            color = as.factor(shape))) +
-#   geom_point(position = position_dodge(width = 0.3)) +
-#   geom_errorbar(aes(ymin = conf.low, ymax = conf.high),
-#                 position = position_dodge(width = 0.3),
-#                 width = .3) +
-#   #scale_x_discrete(labels = c("0" = "bubu", "1" = "kiki")) +
-#   scale_color_discrete(labels = c("0" = "rounded", "1" = "spiky")) +
-#   scale_shape_discrete(labels = c("0" = "rounded", "1" = "spiky")) +
-#   labs(x = "Displayed word",
-#        y = "Reaction time in seconds (95% CI)",
-#        color = "shape",
-#        shape = "shape") +
-#   coord_cartesian(ylim = c(2.5, 4.5))
-#
+ggsave(here("plots/fig3c_marginal.png"), width = 3, height = 3)
+
+
+ggplot(mod2_predictions, 
+       aes(x = as.factor(word), 
+           y = estimate, 
+           group = shape, 
+           shape = as.factor(shape), 
+           color = as.factor(congruence))) +
+  geom_point(position = position_dodge(width = 0.3)) +
+  geom_errorbar(aes(ymin = conf.low, ymax = conf.high),
+                position = position_dodge(width = 0.3),
+                width = .3) +
+  #scale_x_discrete(labels = c("0" = "bubu", "1" = "kiki")) +
+  #scale_color_discrete(labels = c("0" = "rounded", "1" = "spiky")) +
+  scale_shape_discrete(labels = c("0" = "rounded", "1" = "spiky")) +
+  labs(x = "Displayed word",
+       y = "Reaction time in seconds (95% CI)",
+       shape = "Shape") +
+  guides(color = "none") +
+  scale_color_manual(values = c(color_comparison, color_prediction)) +
+  coord_cartesian(ylim = c(2.5, 4.5))
+ggsave(here("plots/fig3c_verbose.png"), width = 3, height = 3)
+
 ```
 
 ### Testing the interaction
