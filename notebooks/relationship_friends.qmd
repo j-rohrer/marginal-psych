@@ -73,7 +73,7 @@ col_smooth <- "#CC79A7"
 
 ggplot() +
   # categorical
-  geom_line(data = pred_cat_expanded, aes(x = age, y = estimate), color = col_cat) +
+  geom_line(data = pred_cat_expanded, aes(x = age, y = estimate, group = floor(age)), color = col_cat) +
   geom_ribbon(data = pred_cat_expanded, aes(x = age, ymin = conf.low, ymax = conf.high), alpha = .2, fill = col_cat) +
   # linear
   geom_line(data = pred_lin, aes(x = age, y = estimate), color = col_lin) +
@@ -84,7 +84,7 @@ ggplot() +
   coord_cartesian(ylim = c(2.5, 5)) +
   xlab("Age") +
   ylab("Importance of friends (95% CI)")
-ggsave("plots/age.png", width = 4, height = 3)
+ggsave(here("plots/age.png"), width = 4, height = 3)
 
 ```
 
