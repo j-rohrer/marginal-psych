@@ -99,23 +99,25 @@ ggsave(here("plots/age.png"), width = 4, height = 3)
 mod <- lm(friendship_importance ~ bs(age, df = 4) + gender + partner +
             bs(age, df = 4):gender + partner:gender + bs(age, df = 4):partner, data = dat)
 
+# Main result
 avg_comparisons(mod, variables = "partner")
+
+# Separate estimates for each gender
 avg_comparisons(mod, variables = "partner", by = "gender")
 
+# Compare the gender-specific estimates
+avg_comparisons(mod, variables = "partner", by = "gender", hypothesis = "b2 - b1 = 0")
+
+# Generate age-specific estimates
+# Note that the wiggliness of this line will depend on how
+# we modeled age
 comp <- avg_comparisons(mod, variables = "partner", by = "age")
 
 ggplot(comp, aes(x = age, y = estimate, ymin = conf.low, ymax = conf.high)) +
   geom_line() +
   geom_ribbon(alpha = .1) +
-  geom_hline(yintercept = 0)
-```
-
-
-
-# Changing the degree of model complexity
-```{r}
-# To do: Illustrate 
-
+  geom_hline(yintercept = 0) +
+  ylab("Association partner and friendship importance")
 ```
 
 
@@ -134,5 +136,70 @@ avg_comparisons(mod_ord, variables = "partner")
 avg_comparisons(mod_ord, variables = "partner", hypothesis = ~ I(sum(x * 1:5)))
 
 ``` 
+
+# Varying the complexity of the linear model to see what happens
+Let's vary model complexity to see what happens to our target quantity, the association between having a partner and friendship importance (holding constant age and gender).
+
+## Age variations
+```{r}
+# No age
+mod_age_0 <- lm(friendship_importance ~ gender + partner +
+            partner:gender, data = dat)
+
+# Linear age
+mod_age_1 <- lm(friendship_importance ~ age + gender + partner +
+            age:gender + partner:gender + age:partner, data = dat)
+
+# Quadratic age
+mod_age_2 <- lm(friendship_importance ~ poly(age, 2) + gender + partner +
+            poly(age, 2):gender + partner:gender + poly(age, 2):partner, data = dat)
+
+# Cubic age
+mod_age_3 <- lm(friendship_importance ~ poly(age, 3) + gender + partner +
+            poly(age, 3):gender + partner:gender + poly(age, 3):partner, data = dat)
+
+# Quartic age
+mod_age_4 <- lm(friendship_importance ~ poly(age, 4) + gender + partner +
+            poly(age, 4):gender + partner:gender + poly(age, 4):partner, data = dat)
+
+# Splines, df = 3
+mod_age_5 <- lm(friendship_importance ~ bs(age, df = 3) + gender + partner +
+                  bs(age, df = 3):gender + partner:gender + bs(age, df = 3):partner, data = dat)
+# Splines, df = 4 (same as above)
+mod_age_6 <- lm(friendship_importance ~ bs(age, df = 4) + gender + partner +
+                  bs(age, df = 3):gender + partner:gender + bs(age, df = 3):partner, data = dat)
+
+# Splines, df = 5
+mod_age_7 <- lm(friendship_importance ~ bs(age, df = 5) + gender + partner +
+                  bs(age, df = 5):gender + partner:gender + bs(age, df = 5):partner, data = dat)
+
+comp_age_0 <- avg_comparisons(mod_age_0, variables = "partner")
+comp_age_1 <- avg_comparisons(mod_age_1, variables = "partner")
+comp_age_2 <- avg_comparisons(mod_age_2, variables = "partner")
+comp_age_3 <- avg_comparisons(mod_age_3, variables = "partner")
+comp_age_4 <- avg_comparisons(mod_age_4, variables = "partner")
+comp_age_5 <- avg_comparisons(mod_age_5, variables = "partner")
+comp_age_6 <- avg_comparisons(mod_age_6, variables = "partner")
+comp_age_7 <- avg_comparisons(mod_age_7, variables = "partner")
+
+```
+
+## Interaction variations
+```{r}
+# No interactions
+mod_interact_1 <- lm(friendship_importance ~ bs(age, df = 4) + gender + partner, data = dat)
+
+# Add two-way interactions (same as above)
+mod_interact_2 <- lm(friendship_importance ~ bs(age, df = 4) + gender + partner +
+                       bs(age, df = 4):gender + partner:gender + bs(age, df = 4):partner, data = dat)
+
+# Add three-way interaction
+mod_interact_3 <- lm(friendship_importance ~ bs(age, df = 4)*gender*partner, data = dat)
+
+comp_interact_1 <- avg_comparisons(mod_interact_1, variables = "partner")
+comp_interact_2 <- avg_comparisons(mod_interact_2, variables = "partner")
+comp_interact_3 <- avg_comparisons(mod_interact_3, variables = "partner")
+
+```
 
 
