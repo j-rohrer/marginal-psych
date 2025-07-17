@@ -7,10 +7,6 @@ format:
     toc: true
 ---
 
-```{r setup, include=FALSE}
-source(here::here("scripts/load.R"))
-```
-
 Before we start, let's execute a helper script that loads the necessary dependencies.
 
 ```{r}
@@ -36,11 +32,18 @@ dat <- dat[complete.cases(dat),]
 
 # Label focal variables
 dat <- transform(dat,
-    gender = factor(girl_match, label = c("Boys", "Mixed", "Girls")),
-    deskmate = factor(deskmate, label = c("Different desk", "Same desk")),
-    gpa_gap = factor(ifelse(diff_gpa < mean(diff_gpa, na.rm = TRUE) - sd(diff_gpa, na.rm = TRUE), "Low", 
-                            ifelse(diff_gpa > mean(diff_gpa, na.rm = TRUE) + sd(diff_gpa, na.rm = TRUE), "High", "Mid")))
-)
+    gender_combination = factor(girl_match, label = c("Boys", "Mixed", "Girls")),
+    deskmate = factor(deskmate, label = c("Different desk", "Same desk")))
+
+# Rename to match labels in manuscript
+dat <- dat |>
+  rename(GPA_average = mean_gpa,
+         GPA_difference = diff_gpa,
+         friendship = friend,
+         classroom = class_id,
+         student1 = s1,
+         student2 = s2)
+
 
 # Display the first few rows of data
 head(dat)
@@ -48,12 +51,11 @@ head(dat)
 
 Fit the model and save it to avoid re-fitting every time.
 
-```{r}
-#| eval: false
+```{r, eval = FALSE}
 mod <- brm(
-    friend ~ deskmate + gender + deskmate:gender +
-        mean_gpa + diff_gpa + mean_gpa:deskmate + diff_gpa:deskmate +
-        (1 | class_id) + (1 | mm(s1, s2)),
+    friendship ~ deskmate + gender_combination + deskmate:gender_combination +
+        GPA_average + GPA_difference + GPA_average:deskmate + GPA_difference:deskmate +
+        (1 | classroom) + (1 | mm(student1, student2)),
     family = bernoulli(link = "logit"),
     data = dat,
     seed = 12345,
@@ -73,159 +75,74 @@ parameters(mod)
 
 # Interpretation with `marginaleffects`
 
-#### What is the average expected probability of a friendship between any two students?
+## What is the average treatment effect of being a deskmate on the log-odds of a friendship (link scale)?
 
 ```{r}
-avg_predictions(mod)
+avg_comparisons(mod, variables = "deskmate", type = "link")
 ```
 
-#### What is the average expected probability of a friendship between deskmates and non-deskmates?
-
-```{r}
-avg_predictions(mod, by = "deskmate")
-```
-
-#### What is the average treatment effect of being a deskmate on the probability of a friendship?
+## What is the average treatment effect of being a deskmate on the probability of a friendship?
 
 ```{r}
 ate <- avg_comparisons(mod, variables = "deskmate")
 ate
 ```
 
-#### What is the average treatment effect of being a deskmate on the log-odds of a friendship (link scale)?
+## What is the average expected probability of a friendship between deskmates and non-deskmates?
 
 ```{r}
-avg_comparisons(mod, variables = "deskmate", type = "link")
+avg_predictions(mod, by = "deskmate")
 ```
 
-#### What is the average treatment effect of being a deskmate on the probability of a friendship, at desks with different gender compositions?
+## What is the average treatment effect of being a deskmate on the probability of a friendship, at desks with different gender compositions?
 
 ```{r}
-avg_comparisons(mod, variables = "deskmate", by = "gender")
+cmp <- avg_comparisons(mod, variables = "deskmate", by = "gender_combination")
 ```
 
-#### Pairwise comparisons, e.g.: Is the effect of sharing a desk stronger for students on girls-only desks, relative to the effect of sharing a desk for students on mixed-gender desks?
-
-```{r}
-cmp <- avg_comparisons(mod,
-    variables = "deskmate",
-    by = "gender",
-    hypothesis = ~pairwise
-)
-cmp
-```
-
-Yes, the effect of sharing a desk on the probability of forming a friendship is `{r} sprintf("%.1f", cmp$estimate[3] * 100)` percentage points stronger for students on girls-only desks than for students on mixed-gender desks. Sharing a desk "works better" as a friendship-forming mechanism on shared-gender desks.
-
-#### Is the effect of sharing a desk stronger for students on gender-matched desks, relative to the effect of sharing a desk for students on mixed-gender desks?
-
-```{r}
-cmp <- avg_comparisons(mod,
-    variables = "deskmate",
-    by = "gender",
-    hypothesis = "(b1 + b3)/2 = b2"
-)
-cmp
-```
-
-Yes, the effect of sharing a desk on the probability of forming a friendship is `{r} sprintf("%.1f", cmp$estimate[3] * 100)` percentage points stronger for students on girls-only desks than for students on mixed-gender desks. Sharing a desk "works better" as a friendship-forming mechanism on shared-gender desks.
-
-
-#### What is the average treatment effect of sharing a desk for students with high and low differences in GPA, accounting for gender?
+### Pairwise comparisons, e.g.: Is the effect of sharing a desk stronger for students on girls-only desks, relative to the effect of sharing a desk for students on mixed-gender desks?
 
 ```{r}
 avg_comparisons(mod,
                 variables = "deskmate",
-                by = "diff_gpa",
-                newdata = datagrid(diff_gpa = c(mean(dat$diff_gpa, na.rm = TRUE) - sd(dat$diff_gpa, na.rm = TRUE), 
-                                                mean(dat$diff_gpa, na.rm = TRUE) + sd(dat$diff_gpa, na.rm = TRUE)),
+                by = "gender_combination",
+                hypothesis = ~pairwise)
+
+```
+
+
+### Is the effect of sharing a desk stronger for students on gender-matched desks, relative to the effect of sharing a desk for students on mixed-gender desks?
+
+```{r}
+avg_comparisons(mod,
+                variables = "deskmate",
+                by = "gender_combination",
+                hypothesis = "(b1 + b3)/2 = b2")
+
+```
+
+### Plotting the effects by gender
+
+```{r}
+plot_predictions(mod, by = c("gender_combination", "deskmate"))
+
+plot_comparisons(mod, variables = "deskmate", by = "gender_combination")
+
+```
+
+
+## Conditioning on other variables in the model
+
+### What is the average treatment effect of sharing a desk for students with high and low differences in GPA, accounting for gender?
+
+```{r}
+avg_comparisons(mod,
+                variables = "deskmate",
+                by = "GPA_difference",
+                newdata = datagrid(GPA_difference = c(mean(dat$GPA_difference, na.rm = TRUE) - sd(dat$GPA_difference, na.rm = TRUE), 
+                                                mean(dat$GPA_difference, na.rm = TRUE) + sd(dat$GPA_difference, na.rm = TRUE)),
                                    grid_type = "counterfactual"))
 
 ```
 
 
-
-#### Other tests
-```{r}
-#| eval: false
-avg_comparisons(mod,
-    variables = "deskmate",
-    by = "gender",
-    hypothesis = "(b1 + b3)/2 = b2"
-)
-
-# HIER WEITER
-
-# New categorical difference in GPA variable
-dat$diff_gpa_cat <- NA
-dat$diff_gpa_cat[dat$diff_gpa <= mean(dat$diff_gpa, na.rm = TRUE) - sd(dat$diff_gpa, na.rm = TRUE)] <- -1
-dat$diff_gpa_cat[dat$diff_gpa > mean(dat$diff_gpa, na.rm = TRUE) - sd(dat$diff_gpa, na.rm = TRUE)] <- 0
-dat$diff_gpa_cat[dat$diff_gpa >= mean(dat$diff_gpa, na.rm = TRUE) + sd(dat$diff_gpa, na.rm = TRUE)] <- 1
-
-avg_comparisons(mod,
-    variables = "deskmate",
-    by = "diff_gpa_cat"
-)
-
-# Evaluate effect at values of interest
-avg_comparisons(mod, variables = c("deskmate", "gender"))
-
-avg_comparisons(mod, variables = list("diff_gpa" = "sd"))
-
-avg_comparisons(mod, variables = c("deskmate", "diff_gpa"))
-
-comparisons(mod, variables = "deskmate", newdata = datagrid(diff_gpa = range))
-
-# Compare the effects
-comparisons(mod, variables = "deskmate", newdata = datagrid(
-    diff_gpa = range
-), hypothesis = "b1 = b2") # 0.046
-
-
-# Compare the effects separately by gendermatch
-comparisons(mod, variables = "deskmate", newdata = datagrid(
-    gender = c(0, 1, 2),
-    diff_gpa = range
-))
-
-comparisons(mod, variables = "deskmate", newdata = datagrid(
-    gender = c(0, 1, 2),
-    diff_gpa = range
-), hypothesis = "b1 = b2") # 0.046
-
-comparisons(mod, variables = "deskmate", newdata = datagrid(
-    gender = c(0, 1, 2),
-    diff_gpa = range
-), hypothesis = "b3 = b4")
-
-comparisons(mod, variables = "deskmate", newdata = datagrid(
-    gender = c(0, 1, 2),
-    diff_gpa = range
-), hypothesis = "b5 = b6")
-
-
-# Correlation between gender-match and difference in gpa
-mean(dat$diff_gpa[dat$gender == 0], na.rm = TRUE)
-mean(dat$diff_gpa[dat$gender == 1], na.rm = TRUE)
-mean(dat$diff_gpa[dat$gender == 2], na.rm = TRUE)
-
-# How to evaluate interaction between diff_gpa and deskmate, holding constant the other stuff
-avg_comparisons(mod,
-    variables = "deskmate",
-    by = "diff_gpa",
-    newdata = datagrid(diff_gpa = range)
-)
-
-avg_comparisons(mod,
-    variables = "deskmate",
-    by = "diff_gpa",
-    newdata = datagrid(diff_gpa = range),
-    hypothesis = "b1 = b2"
-) # difference of 0.0462
-
-# here, the difference in effects is much larger
-avg_comparisons(mod, variables = "deskmate", by = "diff_gpa") 
-
-# here, the difference in effects is much larger
-avg_comparisons(mod, variables = "deskmate", by = "diff_gpa", hypothesis = "b1 = b37") 
-```
