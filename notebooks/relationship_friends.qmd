@@ -131,9 +131,32 @@ mod_ord <- clm(friendship_importance_factor ~ bs(age, df = 4) + gender + partner
             data = dat,
             link = "probit")
 
-avg_comparisons(mod_ord, variables = "partner")
+avg_comparisons(mod_ord, variables = "partner") 
+# these results seem reasonable
+
+avg_comparisons(mod_ord, variables = "partner", type = "linear.predictor") 
+# this gives me five times the estimate 0.147 which would imply a positive effect
+# while everything else (coefficients, probabilities) implies a negative effect?
 
 avg_comparisons(mod_ord, variables = "partner", hypothesis = ~ I(sum(x * 1:5)))
+# This again seems plausible
+
+
+#####
+# Retry with a much simpler model
+mod_ord2 <- clm(friendship_importance_factor ~ age + gender + partner,
+            data = dat,
+            link = "probit")
+
+avg_comparisons(mod_ord2, variables = "partner") 
+# these results seem reasonable
+
+avg_comparisons(mod_ord2, variables = "partner", type = "linear.predictor") 
+# again, I get a positive sign -- I think the sign may be simply swapped?
+
+summary(mod_ord2)
+# Yepp, it's just a swapped sign
+
 
 ``` 
 
