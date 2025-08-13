@@ -84,6 +84,8 @@ avg_comparisons(mod, variables = "deskmate", type = "link")
 ## What is the average treatment effect of being a deskmate on the probability of a friendship?
 
 ```{r}
+options(marginaleffects_posterior_interval = "hdi")
+
 ate <- avg_comparisons(mod, variables = "deskmate")
 ate
 ```
@@ -96,8 +98,11 @@ avg_predictions(mod, by = "deskmate")
 
 ## Comparing our treatment effect to the fast friends procedure
 ```{r}
-#avg_comparisons(mod, variables = "deskmate",
-#                equivalence = c(0.09, 0.11))
+library(posterior)
+draws <- get_draws(avg_comparisons(mod, variables = "deskmate"), "rvar")
+
+Pr(draws$rvar < 0.125) - Pr(draws$rvar < 0.075)
+
 ```
 
 ## What is the average treatment effect of being a deskmate on the probability of a friendship, at desks with different gender compositions?
