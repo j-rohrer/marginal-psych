@@ -1,5 +1,5 @@
 ---
-title: "Example 3: Deskmates"
+title: "Example 2: Friends by Chance"
 author: "Julia Rohrer"
 date: "`r Sys.Date()`"
 format: 
@@ -16,8 +16,18 @@ source(here::here("scripts/load.R"))
 # Overview
 
 This document contains example 3, in which we analyze the effect of being seated next to each other on friendships, using Bayesian multilevel models.
+Data can be downloaded from the [OSF](https://osf.io/wt7nh){target="_blank"} but are also included in the downloadable replication package. 
 
-# Bayesian multilevel regression model
+Every day experience—and previous research—suggests that being spatially close to others can result in friendships. 
+But does spatial proximity also lead to friendships for people who are quite different from each other? 
+We re-analyze data from a large field experiment conducted in 3rd to 8th grade classrooms in rural Hungary previously reported in [Rohrer et al. (2021)](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0255097){target="_blank"}. 
+Proximity was experimentally manipulated by randomizing each classrooms’ seating chart at the beginning of the school semester; thus, students randomly ended up next to each other (deskmate = 1) or not (deskmate = 0). 
+At the end of the semester, students listed up to five best friends from their classroom, which allows us to determine which pairs of students had formed friendships (friendship = 1). 
+Additionally, we know students’ gender and grade point average before the experiment (GPA), which allows us to investigate whether proximity also “works” for girls seated next to boys (who are quite unlikely to befriend each other at that age) or students with discrepant levels of academic achievement.
+
+
+
+# Read and clean the data
 
 ```{r load_fit}
 # Read the data
@@ -48,8 +58,18 @@ dat <- dat |>
 # Display the first few rows of data
 head(dat)
 ```
+# Bayesian multilevel regression model
 
-Fit the model and save it to avoid re-fitting every time.
+Our model here ends up a bit more complex due to the nested structure of the data, and we use the brms package [(Bürkner, 2018)](https://journal.r-project.org/archive/2018/RJ-2018-017/RJ-2018-017.pdf){target="_blank"} which allows us to fit multilevel models in a highly flexible manner. 
+Since we now fit a Bayesian model (relying on the default priors provided by the package), marginaleffects will return credible intervals rather than confidence intervals. 
+Our unit of observation is pairs of students, which are nested within students and classrooms. 
+For each pair, we know:
+* whether they are deskmates
+* their gender_combination (both boys, one girl and one boy, both girls)
+* their GPA_average (i.e., the average across both students) and their absolute GPA_difference (i.e., the discrepancy between both students)
+* whether they report a friendship at the end of the experiment or not
+
+Here, we fit and save the model to avoid refitting repeatedly.
 
 ```{r, eval = FALSE}
 mod <- brm(
@@ -70,6 +90,7 @@ saveRDS(mod, file = here("fits/deskmates.rds"))
 # Load the fitted model
 mod <- readRDS(here("fits/deskmates.rds"))
 
+# Look at the model coefficients
 parameters(mod)
 ```
 
@@ -77,18 +98,24 @@ parameters(mod)
 
 ## What is the average treatment effect of being a deskmate on the log-odds of a friendship (link scale)?
 
+In principle, we could evaluate this model on the log-odds scale on which the coefficients are estimated.
+
 ```{r}
 avg_comparisons(mod, variables = "deskmate", type = "link")
 ```
 
+However, log-odds of friendship are not a particularly intuitive unit, and so instead we may want to switch to the scale of the outcome (friendships)—which is the default behavior of marginaleffects:
+
 ## What is the average treatment effect of being a deskmate on the probability of a friendship?
 
 ```{r}
-options(marginaleffects_posterior_interval = "hdi")
-
 ate <- avg_comparisons(mod, variables = "deskmate")
 ate
 ```
+
+This returns the average effect of the intervention in percentage points.
+
+To provide more context for this effect, we can additionally calculate average predictions:
 
 ## What is the average expected probability of a friendship between deskmates and non-deskmates?
 
@@ -96,22 +123,49 @@ ate
 avg_predictions(mod, by = "deskmate")
 ```
 
-## Comparing our treatment effect to the fast friends procedure
+## Comparing our effect to the fast friends procedure
+
+One may want to compare the effect of sitting next to each other to other interventions meant to foster friendships. 
+For example, one staple of psychological research is the fast friends procedure in which two participants are paired up and then take turns answering questions that escalate in the degree of self-disclosure involved, from mild (“Would you like to be famous? In what way?”) to severe (“When did you last cry in front of another person?”). 
+[Echols and Ivanich (2021)](https://onlinelibrary.wiley.com/doi/abs/10.1111/jora.12622){target="_blank"} implemented such a procedure in US middle school students and found that those who underwent the intervention in three sessions over three months were 10 percentage points more likely to become friends. 
+This seems very close to the 11 percentage point effect we observed in our analysis.
+
+Would it be justified to conclude that the effects are practically the same?
+
+In a Frequentist framework, this would be a use case for an equivalence test. Given our Bayesian model, we instead resort to the notion of a region of practical equivalence (ROPE; [Kruschke, 2018](https://journals.sagepub.com/doi/pdf/10.1177/2515245918771304){target="_blank"}; [Makowski et al., 2019](https://www.frontiersin.org/journals/psychology/articles/10.3389/fpsyg.2019.02767/full){target="_blank"}. 
+First, we need to define a range around the 10 percentage points of the fast friends procedure for which we would consider the effects equivalent for practical purposes. Here, we decide that the effect ± a quarter of the effect is a sensible range, resulting in a ROPE of [0.075; 0.125]. 
+
+Now, we can calculate how likely it is that the effect of sitting next to each other falls into the ROPE of the fast friends procedure. For this, we additionally make use of the convenience provided by the posterior package:
+
+
 ```{r}
 library(posterior)
 draws <- get_draws(avg_comparisons(mod, variables = "deskmate"), "rvar")
 
+Pr(draws$rvar < 0.125) # Probability that below the upper bound
+Pr(draws$rvar < 0.075) # Probability that below the lower bound
+
+# In combination, from this we can conclude the probability that
+# the parameter lies within the bounds
 Pr(draws$rvar < 0.125) - Pr(draws$rvar < 0.075)
 
 ```
 
 ## What is the average treatment effect of being a deskmate on the probability of a friendship, at desks with different gender compositions?
 
+Having looked at the average effect of the intervention, we still do not yet know whether being seated next to each other also “works” for dissimilar students. 
+Here, we will keep evaluating effects on the outcome scale, which we consider most intuitive.
+First, we can separately calculate average effects depending on gender_combination: 
+
+
 ```{r}
-cmp <- avg_comparisons(mod, variables = "deskmate", by = "gender_combination")
+avg_comparisons(mod, variables = "deskmate", by = "gender_combination")
+
 ```
 
 ### Pairwise comparisons, e.g.: Is the effect of sharing a desk stronger for students on girls-only desks, relative to the effect of sharing a desk for students on mixed-gender desks?
+
+We can easily compare all three average effects against each other in a pairwise manner:
 
 ```{r}
 avg_comparisons(mod,
@@ -124,6 +178,9 @@ avg_comparisons(mod,
 
 ### Is the effect of sharing a desk stronger for students on gender-matched desks, relative to the effect of sharing a desk for students on mixed-gender desks?
 
+We may also want to compare gender-matched dyads (pairs of girls, pairs of boys) with gender-mismatched dyads (pairs of a girl and a boy), (b_Two girls + b_Two boys)/2 = b_One girl one boy. 
+This can be achieved by using a different hypothesis argument (being mindful of the order in which the groups are listed in our output):
+
 ```{r}
 avg_comparisons(mod,
                 variables = "deskmate",
@@ -134,25 +191,51 @@ avg_comparisons(mod,
 
 ### Plotting the effects by gender
 
+We can also visualize these different effects:
+
 ```{r}
+# Plot the predicted probabilities
 plot_predictions(mod, by = c("gender_combination", "deskmate"))
 
+# Plot the effects of the intervention in percentage points
 plot_comparisons(mod, variables = "deskmate", by = "gender_combination")
 
 ```
 
 
-## Conditioning on other variables in the model
+## Marginalizing over vs. conditioning on other variables in the model
+
+Notice that so far, we have conducted counterfactual comparisons across deskmate and then simply averaged by gender_combination. 
+Now, recall that our model also contains GPA_difference. 
+The way we currently analyze the data, we do not condition on GPA_difference during post-estimation—that is, we do not hold it constant at any particular value. 
+The different gender_combinations may systematically vary in their GPA_difference, which may in turn modify the effect of the intervention; these differences will show up in our average comparison by gender_combination. 
+One could say we “marginalize over” the observed GPA_difference distribution. T
+his “default” behavior is different from how regression coefficients behave, which are always conditional on all other variables in the model.
+
+It turns out that from a causal inference perspective ([Rohrer, 2018](https://journals.sagepub.com/doi/full/10.1177/2515245917745629){target="_blank"}; [Wysocki et al., 2022](https://journals.sagepub.com/doi/10.1177/25152459221095823){target="_blank"}), marginalizing over GPA_differences rather than conditioning on them is the more reasonable choice. 
+That is because differences in GPA are plausibly causally downstream of gender differences. 
+For gender-mismatched dyads, we may observe larger differences in GPA because gender affects GPA. 
+Thus, if the effects of proximity are larger in gender-mismatched dyads in part because among those dyads, GPA varies more, this indirect effect should count toward the total effect modification by gender combination.
+
+In contrast, when we want to evaluate how GPA_differences affect the effects of proximity, we do want to condition on gender_combination, since the variable is a plausible confounder between GPA_differences and the effects of interest. 
+If the intervention works less for pairs with a larger GPA difference, that may simply be because those pairs are more often mismatched on gender and thus unlikely to befriend each other even when seated next to each other (for a more extensive discussion of the causal status of interactions, see [Rohrer & Arslan, 2021](https://journals.sagepub.com/doi/10.1177/25152459211007368#sec-3){target="_blank"}).
+
 
 ### What is the average treatment effect of sharing a desk for students with high and low differences in GPA, accounting for gender?
 
+So, does the effect of being seated next to each other (deskmate) vary by how strong their academic achievement diverges (GPA_difference), controlling for the effects of gender match (gender_combination)? 
+We can answer this question by conducting comparisons on new hypothetical datasets in which we set GPA_difference to particular values (e.g., ± 1 SD) but keep the other variables (including gender_match) as is. 
+
 ```{r}
 avg_comparisons(mod,
-                variables = "deskmate",
-                by = "GPA_difference",
+                variables = "deskmate", # cause of interest
+                by = "GPA_difference", # variable to split by
                 newdata = datagrid(GPA_difference = c(mean(dat$GPA_difference, na.rm = TRUE) - sd(dat$GPA_difference, na.rm = TRUE), 
                                                 mean(dat$GPA_difference, na.rm = TRUE) + sd(dat$GPA_difference, na.rm = TRUE)),
                                    grid_type = "counterfactual"))
+# the newdata argument is crucial here: we apply the model to new data which represents a counterfactual constrast
+# between a world in which everybody's GPA difference is set to 1 SD below the mean
+# and a world in which everybody's GPA difference is set to 1 SD above the mean.
 
 ```
 
