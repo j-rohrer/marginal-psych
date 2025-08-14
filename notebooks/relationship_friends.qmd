@@ -121,6 +121,15 @@ ggsave(here("plots/age.png"), width = 4, height = 3)
 mod <- lm(friendship_importance ~ bs(age, df = 4) + gender + partner +
             bs(age, df = 4):gender + partner:gender + bs(age, df = 4):partner, data = dat)
 
+# Predictions for a 20 year old single
+predictions(mod, newdata = datagrid(age = 20, gender = "male", partner = 0))
+
+# Slope of age for a 20 year old single
+slopes(mod, variables = "age", newdata = datagrid(age = 20, gender = "male", partner = 0))
+
+# Predictions for everybody in the data
+predictions(mod)
+
 # Main result: Difference in friendship importance with and without partner, holding constant age and gender
 avg_comparisons(mod, variables = "partner")
 
