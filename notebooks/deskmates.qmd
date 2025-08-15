@@ -237,6 +237,15 @@ avg_comparisons(mod,
 # between a world in which everybody's GPA difference is set to 1 SD below the mean
 # and a world in which everybody's GPA difference is set to 1 SD above the mean.
 
+# Compare the two estimates
+avg_comparisons(mod,
+                variables = "deskmate", # cause of interest
+                by = "GPA_difference", # variable to split by
+                newdata = datagrid(GPA_difference = c(mean(dat$GPA_difference, na.rm = TRUE) - sd(dat$GPA_difference, na.rm = TRUE), 
+                                                mean(dat$GPA_difference, na.rm = TRUE) + sd(dat$GPA_difference, na.rm = TRUE)),
+                                   grid_type = "counterfactual"),
+                hypothesis = "b1 = b2")
+
 ```
 
 
