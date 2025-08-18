@@ -17,6 +17,8 @@ website:
             text: "Friends by Chance"
           - href: examples/age.qmd
             text: "Age Trajectories"
+          - href: examples/soep.qmd
+            text: "German Socio-Economic Panel Study"
 
 format:
   html:
