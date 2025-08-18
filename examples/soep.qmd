@@ -3,6 +3,8 @@
 Before we start, let's execute [a helper script](https://github.com/j-rohrer/marginal-psych/blob/main/scripts/load.R) that loads the necessary dependencies.
 
 ```{r}
+#| warning: false
+#| message: false
 source(here::here("scripts/load.R"))
 ```
 
@@ -14,9 +16,6 @@ Annotations were later added manually using PowerPoint.
 ## Read the data and fit the model
 
 ```{r load_fit}
-
-source(here::here("scripts/load.R"))
-
 ## We analyze freely available practice data from the German Socio-Economic Panel Study (SOEP).
 ## The data can be downloaded from the SOEP website (https://www.diw.de/en/diw_01.c.836543.en/soep_practice_dataset.html);
 ## We are using the English version (DOI: 10.5684/soep.practice.v36).
