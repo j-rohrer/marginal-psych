@@ -109,19 +109,15 @@ However, log-odds of friendship are not a particularly intuitive unit, and so in
 ## What is the average treatment effect of being a deskmate on the probability of a friendship?
 
 ```{r}
+# Predicted probabilities
+avg_predictions(mod, by = "deskmate")
+
+# Average Treatment Effect
 ate <- avg_comparisons(mod, variables = "deskmate")
 ate
 ```
 
 This returns the average effect of the intervention in percentage points.
-
-To provide more context for this effect, we can additionally calculate average predictions:
-
-## What is the average expected probability of a friendship between deskmates and non-deskmates?
-
-```{r}
-avg_predictions(mod, by = "deskmate")
-```
 
 ## Comparing our effect to the fast friends procedure
 
