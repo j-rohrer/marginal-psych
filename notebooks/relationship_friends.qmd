@@ -176,12 +176,25 @@ mod_ord <- clm(friendship_importance_factor ~ bs(age, df = 4) + gender + partner
 # Evaluate central comparison in terms of change in response probabilities
 avg_comparisons(mod_ord, variables = "partner") 
 # these results seem reasonable
+```
 
+It's hard to compare these results to the results from the linear model.
+If one really wants to generate an estimate that is as comparable as possible, one can assign integer values from 1 to 5 to the response categories and thus estimate what the ordinal model implies for the average:
+
+```{r}
 # Take the response probabilities and attach the integers 1:5 to the consecutive
 # response categories to arrive at the same metric as the linear model
 avg_comparisons(mod_ord, variables = "partner", hypothesis = ~ I(sum(x * 1:5)))
+``` 
 
-# Maybe more reasonable and in the spirit of the orignal model
+This makes use of the hypothesis argument, which allows researchers to conduct tests on arbitrary transformations of the quantities of interest.
+Here, we take each row of the standard output (the change in the probability of a given response option with partner), multiply it with the corresponding integer value (1 to 5), and sum everything up. 
+
+While this ensures that we ask the ordinal model precisely the same answer that we asked the linear model, it may appear a bit inconsistent given that we usually use ordinal models precisely because we don’t want to assign integer values to the response categories – although note that here we do it only in the very last step, so the model itself does not assume that the distances between adjacent response categories are the same.
+
+Much more in the spirit of the ordinal model, we can also compute the effect on the underlying continuous variable that the model assumes.
+
+```{r}
 # Evaluate effect on the underlying latent variable
 avg_comparisons(mod_ord, variables = "partner", type = "linear.predictor") 
 
