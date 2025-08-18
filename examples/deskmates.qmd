@@ -1,19 +1,14 @@
----
-title: "Example 2: Friends by Chance"
-author: "Julia Rohrer"
-date: "`r Sys.Date()`"
-format: 
-  html:
-    toc: true
----
+# Friends by Chance
 
-Before we start, let's execute a helper script that loads the necessary dependencies.
+Before we start, let's execute [a helper script](https://github.com/j-rohrer/marginal-psych/blob/main/scripts/load.R) that loads the necessary dependencies.
 
 ```{r}
+#| warning: false
+#| message: false
 source(here::here("scripts/load.R"))
 ```
 
-# Overview
+## Overview
 
 This document contains example 3, in which we analyze the effect of being seated next to each other on friendships, using Bayesian multilevel models.
 Data can be downloaded from the [OSF](https://osf.io/wt7nh){target="_blank"} but are also included in the downloadable replication package. 
@@ -27,7 +22,7 @@ Additionally, we know students’ gender and grade point average before the expe
 
 
 
-# Read and clean the data
+## Read and clean the data
 
 ```{r load_fit}
 # Read the data
@@ -58,7 +53,7 @@ dat <- dat |>
 # Display the first few rows of data
 head(dat)
 ```
-# Bayesian multilevel regression model
+## Bayesian multilevel regression model
 
 Our model here ends up a bit more complex due to the nested structure of the data, and we use the brms package [(Bürkner, 2018)](https://journal.r-project.org/archive/2018/RJ-2018-017/RJ-2018-017.pdf){target="_blank"} which allows us to fit multilevel models in a highly flexible manner. 
 Since we now fit a Bayesian model (relying on the default priors provided by the package), marginaleffects will return credible intervals rather than confidence intervals. 
@@ -94,9 +89,9 @@ mod <- readRDS(here("fits/deskmates.rds"))
 parameters(mod)
 ```
 
-# Interpretation with `marginaleffects`
+## Interpretation with `marginaleffects`
 
-## What is the average treatment effect of being a deskmate on the log-odds of a friendship (link scale)?
+### What is the average treatment effect of being a deskmate on the log-odds of a friendship (link scale)?
 
 In principle, we could evaluate this model on the log-odds scale on which the coefficients are estimated.
 
@@ -106,7 +101,7 @@ avg_comparisons(mod, variables = "deskmate", type = "link")
 
 However, log-odds of friendship are not a particularly intuitive unit, and so instead we may want to switch to the scale of the outcome (friendships)—which is the default behavior of marginaleffects:
 
-## What is the average treatment effect of being a deskmate on the probability of a friendship?
+### What is the average treatment effect of being a deskmate on the probability of a friendship?
 
 ```{r}
 # Predicted probabilities
@@ -119,7 +114,7 @@ ate
 
 This returns the average effect of the intervention in percentage points.
 
-## Comparing our effect to the fast friends procedure
+### Comparing our effect to the fast friends procedure
 
 One may want to compare the effect of sitting next to each other to other interventions meant to foster friendships. 
 For example, one staple of psychological research is the fast friends procedure in which two participants are paired up and then take turns answering questions that escalate in the degree of self-disclosure involved, from mild (“Would you like to be famous? In what way?”) to severe (“When did you last cry in front of another person?”). 
@@ -147,7 +142,7 @@ Pr(draws$rvar < 0.125) - Pr(draws$rvar < 0.075)
 
 ```
 
-## What is the average treatment effect of being a deskmate on the probability of a friendship, at desks with different gender compositions?
+### What is the average treatment effect of being a deskmate on the probability of a friendship, at desks with different gender compositions?
 
 Having looked at the average effect of the intervention, we still do not yet know whether being seated next to each other also “works” for dissimilar students. 
 Here, we will keep evaluating effects on the outcome scale, which we consider most intuitive.
@@ -159,7 +154,7 @@ avg_comparisons(mod, variables = "deskmate", by = "gender_combination")
 
 ```
 
-### Pairwise comparisons, e.g.: Is the effect of sharing a desk stronger for students on girls-only desks, relative to the effect of sharing a desk for students on mixed-gender desks?
+#### Pairwise comparisons, e.g.: Is the effect of sharing a desk stronger for students on girls-only desks, relative to the effect of sharing a desk for students on mixed-gender desks?
 
 We can easily compare all three average effects against each other in a pairwise manner:
 
@@ -172,7 +167,7 @@ avg_comparisons(mod,
 ```
 
 
-### Is the effect of sharing a desk stronger for students on gender-matched desks, relative to the effect of sharing a desk for students on mixed-gender desks?
+#### Is the effect of sharing a desk stronger for students on gender-matched desks, relative to the effect of sharing a desk for students on mixed-gender desks?
 
 We may also want to compare gender-matched dyads (pairs of girls, pairs of boys) with gender-mismatched dyads (pairs of a girl and a boy), (b_Two girls + b_Two boys)/2 = b_One girl one boy. 
 This can be achieved by using a different hypothesis argument (being mindful of the order in which the groups are listed in our output):
@@ -185,7 +180,7 @@ avg_comparisons(mod,
 
 ```
 
-### Plotting the effects by gender
+#### Plotting the effects by gender
 
 We can also visualize these different effects:
 
@@ -199,7 +194,7 @@ plot_comparisons(mod, variables = "deskmate", by = "gender_combination")
 ```
 
 
-## Marginalizing over vs. conditioning on other variables in the model
+### Marginalizing over vs. conditioning on other variables in the model
 
 Notice that so far, we have conducted counterfactual comparisons across deskmate and then simply averaged by gender_combination. 
 Now, recall that our model also contains GPA_difference. 
@@ -217,7 +212,7 @@ In contrast, when we want to evaluate how GPA_differences affect the effects of 
 If the intervention works less for pairs with a larger GPA difference, that may simply be because those pairs are more often mismatched on gender and thus unlikely to befriend each other even when seated next to each other (for a more extensive discussion of the causal status of interactions, see [Rohrer & Arslan, 2021](https://journals.sagepub.com/doi/10.1177/25152459211007368#sec-3){target="_blank"}).
 
 
-### What is the average treatment effect of sharing a desk for students with high and low differences in GPA, accounting for gender?
+#### What is the average treatment effect of sharing a desk for students with high and low differences in GPA, accounting for gender?
 
 So, does the effect of being seated next to each other (deskmate) vary by how strong their academic achievement diverges (GPA_difference), controlling for the effects of gender match (gender_combination)? 
 We can answer this question by conducting comparisons on new hypothetical datasets in which we set GPA_difference to particular values (e.g., ± 1 SD) but keep the other variables (including gender_match) as is. 

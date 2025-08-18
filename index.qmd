@@ -1,0 +1,19 @@
+# Models as Prediction Machines
+
+## How to Convert Confusing Coefficients into Clear Quantities
+
+This website hosts a replication package and extra case studies to accompany this article:
+
+> "Models as Prediction Machines: How to Convert Confusing Coefficients into Clear Quantities" by Julia M. Rohrer and Vincent Arel-Bundock (2025)
+
+You can find the article on: [Insert Website Address](https://perdu.com)
+
+Examples:
+
+1. [Friends by Chance](examples/deskmates.html)
+1. [Relationship Status and Friendships](examples/relationships.html)
+1. [Age Trajectories](examples/age.html)
+
+Download the [full replication package here.](assets/models_as_prediction_machines.zip)
+
+The material on this site is licensed under a [Creative Commons Attribution 4.0 International License](https://creativecommons.org/licenses/by/4.0/). This means that you can freely share and adapt the material, as long as you cite the article listed above.
