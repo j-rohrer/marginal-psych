@@ -147,6 +147,7 @@ ggplot(comp, aes(x = age, y = estimate, ymin = conf.low, ymax = conf.high)) +
 
 
 ## Ordinal robustness check
+
 So far, we have simply conducted linear regressions, but that may be considered suspect given the nature of the outcome: it’s just a five-point response scale ranging from not important at all to very important. 
 And, in fact, barely anybody used the lower response options—more than 40% picked the highest response option. 
 This results in a distribution for which the assumptions of linear regression may be considered heroic. 
@@ -192,8 +193,17 @@ Much more in the spirit of the ordinal model, we can also compute the effect on 
 # Evaluate effect on the underlying latent variable
 avg_comparisons(mod_ord, variables = "partner", type = "linear.predictor") 
 
+dat$friendship_importance_factor <- factor(dat$friendship_importance, ordered = TRUE)
+mod_ord <- clm(friendship_importance_factor ~ bs(age, df = 4) + gender + partner +
+            bs(age, df = 4):gender + partner:gender + bs(age, df = 4):partner, 
+            data = dat,
+            link = "probit")
+d0 <- transform(dat, partner = 0)
+d1 <- transform(dat, partner = 1)
+p0 <- predict(mod_ord, newdata = d0, type = "linear.predictor")
+p1 <- predict(mod_ord, newdata = d1, type = "linear.predictor")
+mean(p1$eta1 - p0$eta1)
 # NOTE: This currently returns the wrong sign. Bug to be fixed
-
 ``` 
 
 ## Varying the complexity of the linear model to see what happens
