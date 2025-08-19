@@ -1,0 +1,1573 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.7.32">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>deskmates – Models as Prediction Machines</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<script src="../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-37eea08aefeeee20ff55810ff984fec1.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-9d882aefbe6880e209bb4e231fcedeb2.min.css" rel="stylesheet" append-hash="true" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "overlay",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "show-item-context": false,
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": "",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+
+
+<link rel="stylesheet" href="styles.css">
+</head>
+
+<body class="nav-fixed quarto-light">
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../index.html">
+    <span class="navbar-title">Models as Prediction Machines</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link" href="../index.html"> 
+<span class="menu-text">Home</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../assets/models_as_prediction_machines.zip"> 
+<span class="menu-text">Replication package</span></a>
+  </li>  
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-examples" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Examples</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-examples">    
+        <li>
+    <a class="dropdown-item" href="../examples/relationship.html">
+ <span class="dropdown-text">Relationship Status and Friends</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../examples/deskmates.html">
+ <span class="dropdown-text">Friends by Chance</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../examples/age.html">
+ <span class="dropdown-text">Age Trajectories</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../examples/soep.html">
+ <span class="dropdown-text">German Socio-Economic Panel Study</span></a>
+  </li>  
+    </ul>
+  </li>
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#friends-by-chance" id="toc-friends-by-chance" class="nav-link active" data-scroll-target="#friends-by-chance">Friends by Chance</a>
+  <ul class="collapse">
+  <li><a href="#overview" id="toc-overview" class="nav-link" data-scroll-target="#overview">Overview</a></li>
+  <li><a href="#read-and-clean-the-data" id="toc-read-and-clean-the-data" class="nav-link" data-scroll-target="#read-and-clean-the-data">Read and clean the data</a></li>
+  <li><a href="#bayesian-multilevel-regression-model" id="toc-bayesian-multilevel-regression-model" class="nav-link" data-scroll-target="#bayesian-multilevel-regression-model">Bayesian multilevel regression model</a></li>
+  <li><a href="#interpretation-with-marginaleffects" id="toc-interpretation-with-marginaleffects" class="nav-link" data-scroll-target="#interpretation-with-marginaleffects">Interpretation with <code>marginaleffects</code></a>
+  <ul class="collapse">
+  <li><a href="#what-is-the-average-treatment-effect-of-being-a-deskmate-on-the-log-odds-of-a-friendship-link-scale" id="toc-what-is-the-average-treatment-effect-of-being-a-deskmate-on-the-log-odds-of-a-friendship-link-scale" class="nav-link" data-scroll-target="#what-is-the-average-treatment-effect-of-being-a-deskmate-on-the-log-odds-of-a-friendship-link-scale">What is the average treatment effect of being a deskmate on the log-odds of a friendship (link scale)?</a></li>
+  <li><a href="#what-is-the-average-treatment-effect-of-being-a-deskmate-on-the-probability-of-a-friendship" id="toc-what-is-the-average-treatment-effect-of-being-a-deskmate-on-the-probability-of-a-friendship" class="nav-link" data-scroll-target="#what-is-the-average-treatment-effect-of-being-a-deskmate-on-the-probability-of-a-friendship">What is the average treatment effect of being a deskmate on the probability of a friendship?</a></li>
+  <li><a href="#comparing-our-effect-to-the-fast-friends-procedure" id="toc-comparing-our-effect-to-the-fast-friends-procedure" class="nav-link" data-scroll-target="#comparing-our-effect-to-the-fast-friends-procedure">Comparing our effect to the fast friends procedure</a></li>
+  <li><a href="#what-is-the-average-treatment-effect-of-being-a-deskmate-on-the-probability-of-a-friendship-at-desks-with-different-gender-compositions" id="toc-what-is-the-average-treatment-effect-of-being-a-deskmate-on-the-probability-of-a-friendship-at-desks-with-different-gender-compositions" class="nav-link" data-scroll-target="#what-is-the-average-treatment-effect-of-being-a-deskmate-on-the-probability-of-a-friendship-at-desks-with-different-gender-compositions">What is the average treatment effect of being a deskmate on the probability of a friendship, at desks with different gender compositions?</a></li>
+  <li><a href="#marginalizing-over-vs.-conditioning-on-other-variables-in-the-model" id="toc-marginalizing-over-vs.-conditioning-on-other-variables-in-the-model" class="nav-link" data-scroll-target="#marginalizing-over-vs.-conditioning-on-other-variables-in-the-model">Marginalizing over vs.&nbsp;conditioning on other variables in the model</a></li>
+  </ul></li>
+  </ul></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block"></header>
+
+
+
+
+<section id="friends-by-chance" class="level1">
+<h1>Friends by Chance</h1>
+<p>Before we start, let’s execute <a href="https://github.com/j-rohrer/marginal-psych/blob/main/scripts/load.R">a helper script</a> that loads the necessary dependencies.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">source</span>(here<span class="sc">::</span><span class="fu">here</span>(<span class="st">"scripts/load.R"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<section id="overview" class="level2">
+<h2 class="anchored" data-anchor-id="overview">Overview</h2>
+<p>This document contains example 3, in which we analyze the effect of being seated next to each other on friendships, using Bayesian multilevel models. Data can be downloaded from the <a href="https://osf.io/wt7nh" target="_blank">OSF</a> but are also included in the downloadable replication package.</p>
+<p>Every day experience—and previous research—suggests that being spatially close to others can result in friendships. But does spatial proximity also lead to friendships for people who are quite different from each other? We re-analyze data from a large field experiment conducted in 3rd to 8th grade classrooms in rural Hungary previously reported in <a href="https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0255097" target="_blank">Rohrer et al.&nbsp;(2021)</a>. Proximity was experimentally manipulated by randomizing each classrooms’ seating chart at the beginning of the school semester; thus, students randomly ended up next to each other (deskmate = 1) or not (deskmate = 0). At the end of the semester, students listed up to five best friends from their classroom, which allows us to determine which pairs of students had formed friendships (friendship = 1). Additionally, we know students’ gender and grade point average before the experiment (GPA), which allows us to investigate whether proximity also “works” for girls seated next to boys (who are quite unlikely to befriend each other at that age) or students with discrepant levels of academic achievement.</p>
+</section>
+<section id="read-and-clean-the-data" class="level2">
+<h2 class="anchored" data-anchor-id="read-and-clean-the-data">Read and clean the data</h2>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Read the data</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>dat <span class="ot">&lt;-</span> <span class="fu">read.csv</span>(<span class="fu">here</span>(<span class="st">"data/deskmates.csv"</span>))</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Arbitrary subset of 60 classes to make model-fitting less tedious</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>dat <span class="ot">&lt;-</span> dat[dat<span class="sc">$</span>class_id <span class="sc">%in%</span> <span class="fu">unique</span>(dat<span class="sc">$</span>class_id)[<span class="dv">1</span><span class="sc">:</span><span class="dv">60</span>], ]</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Keep complete cases</span></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>dat <span class="ot">&lt;-</span> dat[<span class="fu">complete.cases</span>(dat),]</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Label focal variables</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>dat <span class="ot">&lt;-</span> <span class="fu">transform</span>(dat,</span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>    <span class="at">gender_combination =</span> <span class="fu">factor</span>(girl_match, <span class="at">label =</span> <span class="fu">c</span>(<span class="st">"Boys"</span>, <span class="st">"Mixed"</span>, <span class="st">"Girls"</span>)),</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a>    <span class="at">deskmate =</span> <span class="fu">factor</span>(deskmate, <span class="at">label =</span> <span class="fu">c</span>(<span class="st">"Different desk"</span>, <span class="st">"Same desk"</span>)))</span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a><span class="co"># Rename to match labels in manuscript</span></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>dat <span class="ot">&lt;-</span> dat <span class="sc">|&gt;</span></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">GPA_average =</span> mean_gpa,</span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>         <span class="at">GPA_difference =</span> diff_gpa,</span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>         <span class="at">friendship =</span> friend,</span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>         <span class="at">classroom =</span> class_id,</span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>         <span class="at">student1 =</span> s1,</span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>         <span class="at">student2 =</span> s2)</span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a><span class="co"># Display the first few rows of data</span></span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(dat)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>  any_single       deskmate sim_s1_s2 girl_s1 girl_s2 roma_s1 roma_s2 gpa_s1 gpa_s2 friendship friend_s1 friend_s2 girl_match roma_match GPA_average GPA_difference sim_s1_s2_std size size.1 gendermatch classroom school_id student1 student2 gender_combination
+1          0      Same desk 0.6500000       1       0       0       0    4.4    4.2          0         0         0          1          0         4.3            0.2    -0.2570821   18     18           0     59379        32   731891   773914              Mixed
+2          0 Different desk 0.9566667       1       1       0       0    4.4    5.0          1         1         1          2          0         4.7            0.6     1.0919846   18     18           1     59379        32   731891   492505              Girls
+3          0 Different desk 0.6366667       1       0       0       0    4.4    4.0          0         0         0          1          0         4.2            0.4    -0.3157372   18     18           0     59379        32   731891   300996              Mixed
+4          0 Different desk 0.6233333       1       0       0       0    4.4    4.2          0         0         0          1          0         4.3            0.2    -0.3743922   18     18           0     59379        32   731891   888954              Mixed
+5          0 Different desk 0.9833333       1       1       0       0    4.4    4.6          1         1         1          2          0         4.5            0.2     1.2092947   18     18           1     59379        32   731891   706146              Girls
+6          0 Different desk 0.6233333       1       0       0       0    4.4    5.0          0         0         0          1          0         4.7            0.6    -0.3743922   18     18           0     59379        32   731891   288809              Mixed</code></pre>
+</div>
+</div>
+</section>
+<section id="bayesian-multilevel-regression-model" class="level2">
+<h2 class="anchored" data-anchor-id="bayesian-multilevel-regression-model">Bayesian multilevel regression model</h2>
+<p>Our model here ends up a bit more complex due to the nested structure of the data, and we use the brms package <a href="https://journal.r-project.org/archive/2018/RJ-2018-017/RJ-2018-017.pdf" target="_blank">(Bürkner, 2018)</a> which allows us to fit multilevel models in a highly flexible manner. Since we now fit a Bayesian model (relying on the default priors provided by the package), marginaleffects will return credible intervals rather than confidence intervals. Our unit of observation is pairs of students, which are nested within students and classrooms. For each pair, we know: * whether they are deskmates * their gender_combination (both boys, one girl and one boy, both girls) * their GPA_average (i.e., the average across both students) and their absolute GPA_difference (i.e., the discrepancy between both students) * whether they report a friendship at the end of the experiment or not</p>
+<p>Here, we fit and save the model to avoid refitting repeatedly.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>mod <span class="ot">&lt;-</span> <span class="fu">brm</span>(</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    friendship <span class="sc">~</span> deskmate <span class="sc">+</span> gender_combination <span class="sc">+</span> deskmate<span class="sc">:</span>gender_combination <span class="sc">+</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>        GPA_average <span class="sc">+</span> GPA_difference <span class="sc">+</span> GPA_average<span class="sc">:</span>deskmate <span class="sc">+</span> GPA_difference<span class="sc">:</span>deskmate <span class="sc">+</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>        (<span class="dv">1</span> <span class="sc">|</span> classroom) <span class="sc">+</span> (<span class="dv">1</span> <span class="sc">|</span> <span class="fu">mm</span>(student1, student2)),</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>    <span class="at">family =</span> <span class="fu">bernoulli</span>(<span class="at">link =</span> <span class="st">"logit"</span>),</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>    <span class="at">data =</span> dat,</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">seed =</span> <span class="dv">12345</span>,</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>    <span class="at">cores =</span> <span class="dv">4</span></span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a><span class="co"># Save model fit</span></span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a><span class="fu">saveRDS</span>(mod, <span class="at">file =</span> <span class="fu">here</span>(<span class="st">"fits/deskmates.rds"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Load the fitted model</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>mod <span class="ot">&lt;-</span> <span class="fu">readRDS</span>(<span class="fu">here</span>(<span class="st">"fits/deskmates.rds"</span>))</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="co"># Look at the model coefficients</span></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="fu">parameters</span>(mod)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># Fixed Effects
+
+Parameter                                |   Median |         95% CI |     pd |  Rhat |     ESS
+-----------------------------------------------------------------------------------------------
+(Intercept)                              |    -1.62 | [-2.34, -0.94] |   100% | 1.000 | 1791.00
+deskmateSamedesk                         |     0.22 | [-1.49,  1.96] | 60.02% | 1.001 | 2402.00
+gender_combinationMixed                  |    -3.54 | [-3.88, -3.23] |   100% | 1.002 | 2582.00
+gender_combinationGirls                  | 5.66e-03 | [-0.25,  0.25] | 51.75% | 1.001 | 2254.00
+GPA_average                              |     0.30 | [ 0.13,  0.49] | 99.95% | 1.001 | 1495.00
+GPA_difference                           |    -0.42 | [-0.56, -0.28] |   100% | 1.000 | 4267.00
+deskmateSamedesk:gender_combinationMixed |     0.12 | [-0.86,  0.98] | 59.62% | 1.000 | 4483.00
+deskmateSamedesk:gender_combinationGirls |     0.04 | [-0.69,  0.78] | 54.07% | 1.001 | 4559.00
+deskmateSamedesk:GPA_average             |     0.18 | [-0.26,  0.62] | 79.67% | 1.000 | 2529.00
+deskmateSamedesk:GPA_difference          |    -0.03 | [-0.60,  0.47] | 54.55% | 1.000 | 4436.00</code></pre>
+</div>
+</div>
+</section>
+<section id="interpretation-with-marginaleffects" class="level2">
+<h2 class="anchored" data-anchor-id="interpretation-with-marginaleffects">Interpretation with <code>marginaleffects</code></h2>
+<section id="what-is-the-average-treatment-effect-of-being-a-deskmate-on-the-log-odds-of-a-friendship-link-scale" class="level3">
+<h3 class="anchored" data-anchor-id="what-is-the-average-treatment-effect-of-being-a-deskmate-on-the-log-odds-of-a-friendship-link-scale">What is the average treatment effect of being a deskmate on the log-odds of a friendship (link scale)?</h3>
+<p>In principle, we could evaluate this model on the log-odds scale on which the coefficients are estimated.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">avg_comparisons</span>(mod, <span class="at">variables =</span> <span class="st">"deskmate"</span>, <span class="at">type =</span> <span class="st">"link"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<!-- preamble start -->
+
+    <script>
+
+      function styleCell_h27wrsdlorfgirqay9r2(i, j, css_id) {
+          var table = document.getElementById("tinytable_h27wrsdlorfgirqay9r2");
+          var cell = table.querySelector(`[data-row="${i}"][data-col="${j}"]`);
+          if (cell) {
+              console.log(`Styling cell at (${i}, ${j}) with class ${css_id}`);
+              cell.classList.add(css_id);
+          } else {
+              console.warn(`Cell at (${i}, ${j}) not found.`);
+          }
+      }
+      function spanCell_h27wrsdlorfgirqay9r2(i, j, rowspan, colspan) {
+        var table = document.getElementById("tinytable_h27wrsdlorfgirqay9r2");
+        const targetCell = table.querySelector(`[data-row="${i}"][data-col="${j}"]`);
+        if (!targetCell) {
+          console.warn(`Cell at (${i}, ${j}) not found.`);
+        }
+
+        // Get all cells that need to be removed
+        const cellsToRemove = [];
+        for (let r = 0; r < rowspan; r++) {
+          for (let c = 0; c < colspan; c++) {
+            if (r === 0 && c === 0) continue; // Skip the target cell
+            const cell = table.querySelector(`[data-row="${i + r}"][data-col="${j + c}"]`);
+            if (cell) {
+              cellsToRemove.push(cell);
+            }
+          }
+        }
+
+        // Remove all cells
+        cellsToRemove.forEach(cell => cell.remove());
+
+        // Set rowspan and colspan of the target cell if it exists
+        if (targetCell) {
+          targetCell.rowSpan = rowspan;
+          targetCell.colSpan = colspan;
+        }
+      }
+      // tinytable span after
+      window.addEventListener('load', function () {
+          var cellsToStyle = [
+            // tinytable style arrays after
+          { positions: [ { i: '1', j: 0 }, { i: '1', j: 1 }, { i: '1', j: 2 },  ], css_id: 'tinytable_css_us6dpdeyeq036v9gjdu9',}, 
+          { positions: [ { i: '0', j: 0 }, { i: '0', j: 1 }, { i: '0', j: 2 },  ], css_id: 'tinytable_css_evbzxbixf7e0tkqbmtn3',}, 
+          ];
+
+          // Loop over the arrays to style the cells
+          cellsToStyle.forEach(function (group) {
+              group.positions.forEach(function (cell) {
+                  styleCell_h27wrsdlorfgirqay9r2(cell.i, cell.j, group.css_id);
+              });
+          });
+      });
+    </script>
+
+    <style>
+      /* tinytable css entries after */
+      .table td.tinytable_css_us6dpdeyeq036v9gjdu9, .table th.tinytable_css_us6dpdeyeq036v9gjdu9 { border-bottom: solid #d3d8dc 0.1em; }
+      .table td.tinytable_css_evbzxbixf7e0tkqbmtn3, .table th.tinytable_css_evbzxbixf7e0tkqbmtn3 { border-top: solid #d3d8dc 0.1em; border-bottom: solid #d3d8dc 0.05em; }
+    </style>
+    <div class="container">
+      <table class="table table-borderless" id="tinytable_h27wrsdlorfgirqay9r2" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
+        <thead>
+        
+              <tr>
+                <th scope="col" data-row="0" data-col="0">Estimate</th>
+                <th scope="col" data-row="0" data-col="1">2.5 %</th>
+                <th scope="col" data-row="0" data-col="2">97.5 %</th>
+              </tr>
+        </thead>
+        
+        <tbody>
+                <tr>
+                  <td data-row="1" data-col="0">0.958</td>
+                  <td data-row="1" data-col="1">0.533</td>
+                  <td data-row="1" data-col="2">1.35</td>
+                </tr>
+        </tbody>
+      </table>
+    </div>
+<!-- hack to avoid NA insertion in last line -->
+</div>
+</div>
+<p>However, log-odds of friendship are not a particularly intuitive unit, and so instead we may want to switch to the scale of the outcome (friendships)—which is the default behavior of marginaleffects:</p>
+</section>
+<section id="what-is-the-average-treatment-effect-of-being-a-deskmate-on-the-probability-of-a-friendship" class="level3">
+<h3 class="anchored" data-anchor-id="what-is-the-average-treatment-effect-of-being-a-deskmate-on-the-probability-of-a-friendship">What is the average treatment effect of being a deskmate on the probability of a friendship?</h3>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Predicted probabilities</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="fu">avg_predictions</span>(mod, <span class="at">by =</span> <span class="st">"deskmate"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<!-- preamble start -->
+
+    <script>
+
+      function styleCell_vpjt4lmm8svbmgjtrhr1(i, j, css_id) {
+          var table = document.getElementById("tinytable_vpjt4lmm8svbmgjtrhr1");
+          var cell = table.querySelector(`[data-row="${i}"][data-col="${j}"]`);
+          if (cell) {
+              console.log(`Styling cell at (${i}, ${j}) with class ${css_id}`);
+              cell.classList.add(css_id);
+          } else {
+              console.warn(`Cell at (${i}, ${j}) not found.`);
+          }
+      }
+      function spanCell_vpjt4lmm8svbmgjtrhr1(i, j, rowspan, colspan) {
+        var table = document.getElementById("tinytable_vpjt4lmm8svbmgjtrhr1");
+        const targetCell = table.querySelector(`[data-row="${i}"][data-col="${j}"]`);
+        if (!targetCell) {
+          console.warn(`Cell at (${i}, ${j}) not found.`);
+        }
+
+        // Get all cells that need to be removed
+        const cellsToRemove = [];
+        for (let r = 0; r < rowspan; r++) {
+          for (let c = 0; c < colspan; c++) {
+            if (r === 0 && c === 0) continue; // Skip the target cell
+            const cell = table.querySelector(`[data-row="${i + r}"][data-col="${j + c}"]`);
+            if (cell) {
+              cellsToRemove.push(cell);
+            }
+          }
+        }
+
+        // Remove all cells
+        cellsToRemove.forEach(cell => cell.remove());
+
+        // Set rowspan and colspan of the target cell if it exists
+        if (targetCell) {
+          targetCell.rowSpan = rowspan;
+          targetCell.colSpan = colspan;
+        }
+      }
+      // tinytable span after
+      window.addEventListener('load', function () {
+          var cellsToStyle = [
+            // tinytable style arrays after
+          { positions: [ { i: '2', j: 0 }, { i: '2', j: 1 }, { i: '2', j: 2 }, { i: '2', j: 3 },  ], css_id: 'tinytable_css_kewpe4tjxocxd1gdpnft',}, 
+          { positions: [ { i: '0', j: 0 }, { i: '0', j: 1 }, { i: '0', j: 2 }, { i: '0', j: 3 },  ], css_id: 'tinytable_css_ij21jhynep0ycqpvgmj9',}, 
+          ];
+
+          // Loop over the arrays to style the cells
+          cellsToStyle.forEach(function (group) {
+              group.positions.forEach(function (cell) {
+                  styleCell_vpjt4lmm8svbmgjtrhr1(cell.i, cell.j, group.css_id);
+              });
+          });
+      });
+    </script>
+
+    <style>
+      /* tinytable css entries after */
+      .table td.tinytable_css_kewpe4tjxocxd1gdpnft, .table th.tinytable_css_kewpe4tjxocxd1gdpnft { border-bottom: solid #d3d8dc 0.1em; }
+      .table td.tinytable_css_ij21jhynep0ycqpvgmj9, .table th.tinytable_css_ij21jhynep0ycqpvgmj9 { border-top: solid #d3d8dc 0.1em; border-bottom: solid #d3d8dc 0.05em; }
+    </style>
+    <div class="container">
+      <table class="table table-borderless" id="tinytable_vpjt4lmm8svbmgjtrhr1" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
+        <thead>
+        
+              <tr>
+                <th scope="col" data-row="0" data-col="0">deskmate</th>
+                <th scope="col" data-row="0" data-col="1">Estimate</th>
+                <th scope="col" data-row="0" data-col="2">2.5 %</th>
+                <th scope="col" data-row="0" data-col="3">97.5 %</th>
+              </tr>
+        </thead>
+        
+        <tbody>
+                <tr>
+                  <td data-row="1" data-col="0">Different desk</td>
+                  <td data-row="1" data-col="1">0.166</td>
+                  <td data-row="1" data-col="2">0.158</td>
+                  <td data-row="1" data-col="3">0.174</td>
+                </tr>
+                <tr>
+                  <td data-row="2" data-col="0">Same desk</td>
+                  <td data-row="2" data-col="1">0.270</td>
+                  <td data-row="2" data-col="2">0.234</td>
+                  <td data-row="2" data-col="3">0.311</td>
+                </tr>
+        </tbody>
+      </table>
+    </div>
+<!-- hack to avoid NA insertion in last line -->
+</div>
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Average Treatment Effect</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>ate <span class="ot">&lt;-</span> <span class="fu">avg_comparisons</span>(mod, <span class="at">variables =</span> <span class="st">"deskmate"</span>)</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>ate</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<!-- preamble start -->
+
+    <script>
+
+      function styleCell_38l1ieicbjli947cyp68(i, j, css_id) {
+          var table = document.getElementById("tinytable_38l1ieicbjli947cyp68");
+          var cell = table.querySelector(`[data-row="${i}"][data-col="${j}"]`);
+          if (cell) {
+              console.log(`Styling cell at (${i}, ${j}) with class ${css_id}`);
+              cell.classList.add(css_id);
+          } else {
+              console.warn(`Cell at (${i}, ${j}) not found.`);
+          }
+      }
+      function spanCell_38l1ieicbjli947cyp68(i, j, rowspan, colspan) {
+        var table = document.getElementById("tinytable_38l1ieicbjli947cyp68");
+        const targetCell = table.querySelector(`[data-row="${i}"][data-col="${j}"]`);
+        if (!targetCell) {
+          console.warn(`Cell at (${i}, ${j}) not found.`);
+        }
+
+        // Get all cells that need to be removed
+        const cellsToRemove = [];
+        for (let r = 0; r < rowspan; r++) {
+          for (let c = 0; c < colspan; c++) {
+            if (r === 0 && c === 0) continue; // Skip the target cell
+            const cell = table.querySelector(`[data-row="${i + r}"][data-col="${j + c}"]`);
+            if (cell) {
+              cellsToRemove.push(cell);
+            }
+          }
+        }
+
+        // Remove all cells
+        cellsToRemove.forEach(cell => cell.remove());
+
+        // Set rowspan and colspan of the target cell if it exists
+        if (targetCell) {
+          targetCell.rowSpan = rowspan;
+          targetCell.colSpan = colspan;
+        }
+      }
+      // tinytable span after
+      window.addEventListener('load', function () {
+          var cellsToStyle = [
+            // tinytable style arrays after
+          { positions: [ { i: '1', j: 0 }, { i: '1', j: 1 }, { i: '1', j: 2 },  ], css_id: 'tinytable_css_8m41fpxzxjzbejll16z4',}, 
+          { positions: [ { i: '0', j: 0 }, { i: '0', j: 1 }, { i: '0', j: 2 },  ], css_id: 'tinytable_css_ulxwlf5ja7nv2ajprvx1',}, 
+          ];
+
+          // Loop over the arrays to style the cells
+          cellsToStyle.forEach(function (group) {
+              group.positions.forEach(function (cell) {
+                  styleCell_38l1ieicbjli947cyp68(cell.i, cell.j, group.css_id);
+              });
+          });
+      });
+    </script>
+
+    <style>
+      /* tinytable css entries after */
+      .table td.tinytable_css_8m41fpxzxjzbejll16z4, .table th.tinytable_css_8m41fpxzxjzbejll16z4 { border-bottom: solid #d3d8dc 0.1em; }
+      .table td.tinytable_css_ulxwlf5ja7nv2ajprvx1, .table th.tinytable_css_ulxwlf5ja7nv2ajprvx1 { border-top: solid #d3d8dc 0.1em; border-bottom: solid #d3d8dc 0.05em; }
+    </style>
+    <div class="container">
+      <table class="table table-borderless" id="tinytable_38l1ieicbjli947cyp68" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
+        <thead>
+        
+              <tr>
+                <th scope="col" data-row="0" data-col="0">Estimate</th>
+                <th scope="col" data-row="0" data-col="1">2.5 %</th>
+                <th scope="col" data-row="0" data-col="2">97.5 %</th>
+              </tr>
+        </thead>
+        
+        <tbody>
+                <tr>
+                  <td data-row="1" data-col="0">0.108</td>
+                  <td data-row="1" data-col="1">0.0697</td>
+                  <td data-row="1" data-col="2">0.15</td>
+                </tr>
+        </tbody>
+      </table>
+    </div>
+<!-- hack to avoid NA insertion in last line -->
+</div>
+</div>
+<p>This returns the average effect of the intervention in percentage points.</p>
+</section>
+<section id="comparing-our-effect-to-the-fast-friends-procedure" class="level3">
+<h3 class="anchored" data-anchor-id="comparing-our-effect-to-the-fast-friends-procedure">Comparing our effect to the fast friends procedure</h3>
+<p>One may want to compare the effect of sitting next to each other to other interventions meant to foster friendships. For example, one staple of psychological research is the fast friends procedure in which two participants are paired up and then take turns answering questions that escalate in the degree of self-disclosure involved, from mild (“Would you like to be famous? In what way?”) to severe (“When did you last cry in front of another person?”). <a href="https://onlinelibrary.wiley.com/doi/abs/10.1111/jora.12622" target="_blank">Echols and Ivanich (2021)</a> implemented such a procedure in US middle school students and found that those who underwent the intervention in three sessions over three months were 10 percentage points more likely to become friends. This seems very close to the 11 percentage point effect we observed in our analysis.</p>
+<p>Would it be justified to conclude that the effects are practically the same?</p>
+<p>In a Frequentist framework, this would be a use case for an equivalence test. Given our Bayesian model, we instead resort to the notion of a region of practical equivalence (ROPE; <a href="https://journals.sagepub.com/doi/pdf/10.1177/2515245918771304" target="_blank">Kruschke, 2018</a>; <a href="https://www.frontiersin.org/journals/psychology/articles/10.3389/fpsyg.2019.02767/full" target="_blank">Makowski et al., 2019</a>. First, we need to define a range around the 10 percentage points of the fast friends procedure for which we would consider the effects equivalent for practical purposes. Here, we decide that the effect ± a quarter of the effect is a sensible range, resulting in a ROPE of [0.075; 0.125].</p>
+<p>Now, we can calculate how likely it is that the effect of sitting next to each other falls into the ROPE of the fast friends procedure. For this, we additionally make use of the convenience provided by the posterior package:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(posterior)</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>draws <span class="ot">&lt;-</span> <span class="fu">get_draws</span>(<span class="fu">avg_comparisons</span>(mod, <span class="at">variables =</span> <span class="st">"deskmate"</span>), <span class="st">"rvar"</span>)</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a><span class="fu">Pr</span>(draws<span class="sc">$</span>rvar <span class="sc">&lt;</span> <span class="fl">0.125</span>) <span class="co"># Probability that below the upper bound</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.79775</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="fu">Pr</span>(draws<span class="sc">$</span>rvar <span class="sc">&lt;</span> <span class="fl">0.075</span>) <span class="co"># Probability that below the lower bound</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.04175</code></pre>
+</div>
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="co"># In combination, from this we can conclude the probability that</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="co"># the parameter lies within the bounds</span></span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="fu">Pr</span>(draws<span class="sc">$</span>rvar <span class="sc">&lt;</span> <span class="fl">0.125</span>) <span class="sc">-</span> <span class="fu">Pr</span>(draws<span class="sc">$</span>rvar <span class="sc">&lt;</span> <span class="fl">0.075</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>[1] 0.756</code></pre>
+</div>
+</div>
+</section>
+<section id="what-is-the-average-treatment-effect-of-being-a-deskmate-on-the-probability-of-a-friendship-at-desks-with-different-gender-compositions" class="level3">
+<h3 class="anchored" data-anchor-id="what-is-the-average-treatment-effect-of-being-a-deskmate-on-the-probability-of-a-friendship-at-desks-with-different-gender-compositions">What is the average treatment effect of being a deskmate on the probability of a friendship, at desks with different gender compositions?</h3>
+<p>Having looked at the average effect of the intervention, we still do not yet know whether being seated next to each other also “works” for dissimilar students. Here, we will keep evaluating effects on the outcome scale, which we consider most intuitive. First, we can separately calculate average effects depending on gender_combination:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">avg_comparisons</span>(mod, <span class="at">variables =</span> <span class="st">"deskmate"</span>, <span class="at">by =</span> <span class="st">"gender_combination"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<!-- preamble start -->
+
+    <script>
+
+      function styleCell_cg8awoirjaxnu5olpxz1(i, j, css_id) {
+          var table = document.getElementById("tinytable_cg8awoirjaxnu5olpxz1");
+          var cell = table.querySelector(`[data-row="${i}"][data-col="${j}"]`);
+          if (cell) {
+              console.log(`Styling cell at (${i}, ${j}) with class ${css_id}`);
+              cell.classList.add(css_id);
+          } else {
+              console.warn(`Cell at (${i}, ${j}) not found.`);
+          }
+      }
+      function spanCell_cg8awoirjaxnu5olpxz1(i, j, rowspan, colspan) {
+        var table = document.getElementById("tinytable_cg8awoirjaxnu5olpxz1");
+        const targetCell = table.querySelector(`[data-row="${i}"][data-col="${j}"]`);
+        if (!targetCell) {
+          console.warn(`Cell at (${i}, ${j}) not found.`);
+        }
+
+        // Get all cells that need to be removed
+        const cellsToRemove = [];
+        for (let r = 0; r < rowspan; r++) {
+          for (let c = 0; c < colspan; c++) {
+            if (r === 0 && c === 0) continue; // Skip the target cell
+            const cell = table.querySelector(`[data-row="${i + r}"][data-col="${j + c}"]`);
+            if (cell) {
+              cellsToRemove.push(cell);
+            }
+          }
+        }
+
+        // Remove all cells
+        cellsToRemove.forEach(cell => cell.remove());
+
+        // Set rowspan and colspan of the target cell if it exists
+        if (targetCell) {
+          targetCell.rowSpan = rowspan;
+          targetCell.colSpan = colspan;
+        }
+      }
+      // tinytable span after
+      window.addEventListener('load', function () {
+          var cellsToStyle = [
+            // tinytable style arrays after
+          { positions: [ { i: '3', j: 0 }, { i: '3', j: 1 }, { i: '3', j: 2 }, { i: '3', j: 3 },  ], css_id: 'tinytable_css_insmmkpnahiox7yzutt5',}, 
+          { positions: [ { i: '0', j: 0 }, { i: '0', j: 1 }, { i: '0', j: 2 }, { i: '0', j: 3 },  ], css_id: 'tinytable_css_5du7cgm1igz8jpmdrfpw',}, 
+          ];
+
+          // Loop over the arrays to style the cells
+          cellsToStyle.forEach(function (group) {
+              group.positions.forEach(function (cell) {
+                  styleCell_cg8awoirjaxnu5olpxz1(cell.i, cell.j, group.css_id);
+              });
+          });
+      });
+    </script>
+
+    <style>
+      /* tinytable css entries after */
+      .table td.tinytable_css_insmmkpnahiox7yzutt5, .table th.tinytable_css_insmmkpnahiox7yzutt5 { border-bottom: solid #d3d8dc 0.1em; }
+      .table td.tinytable_css_5du7cgm1igz8jpmdrfpw, .table th.tinytable_css_5du7cgm1igz8jpmdrfpw { border-top: solid #d3d8dc 0.1em; border-bottom: solid #d3d8dc 0.05em; }
+    </style>
+    <div class="container">
+      <table class="table table-borderless" id="tinytable_cg8awoirjaxnu5olpxz1" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
+        <thead>
+        
+              <tr>
+                <th scope="col" data-row="0" data-col="0">gender_combination</th>
+                <th scope="col" data-row="0" data-col="1">Estimate</th>
+                <th scope="col" data-row="0" data-col="2">2.5 %</th>
+                <th scope="col" data-row="0" data-col="3">97.5 %</th>
+              </tr>
+        </thead>
+        
+        <tbody>
+                <tr>
+                  <td data-row="1" data-col="0">Boys</td>
+                  <td data-row="1" data-col="1">0.1683</td>
+                  <td data-row="1" data-col="2">0.07489</td>
+                  <td data-row="1" data-col="3">0.2675</td>
+                </tr>
+                <tr>
+                  <td data-row="2" data-col="0">Mixed</td>
+                  <td data-row="2" data-col="1">0.0317</td>
+                  <td data-row="2" data-col="2">0.00534</td>
+                  <td data-row="2" data-col="3">0.0684</td>
+                </tr>
+                <tr>
+                  <td data-row="3" data-col="0">Girls</td>
+                  <td data-row="3" data-col="1">0.1940</td>
+                  <td data-row="3" data-col="2">0.08685</td>
+                  <td data-row="3" data-col="3">0.3018</td>
+                </tr>
+        </tbody>
+      </table>
+    </div>
+<!-- hack to avoid NA insertion in last line -->
+</div>
+</div>
+<section id="pairwise-comparisons-e.g.-is-the-effect-of-sharing-a-desk-stronger-for-students-on-girls-only-desks-relative-to-the-effect-of-sharing-a-desk-for-students-on-mixed-gender-desks" class="level4">
+<h4 class="anchored" data-anchor-id="pairwise-comparisons-e.g.-is-the-effect-of-sharing-a-desk-stronger-for-students-on-girls-only-desks-relative-to-the-effect-of-sharing-a-desk-for-students-on-mixed-gender-desks">Pairwise comparisons, e.g.: Is the effect of sharing a desk stronger for students on girls-only desks, relative to the effect of sharing a desk for students on mixed-gender desks?</h4>
+<p>We can easily compare all three average effects against each other in a pairwise manner:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">avg_comparisons</span>(mod,</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>                <span class="at">variables =</span> <span class="st">"deskmate"</span>,</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>                <span class="at">by =</span> <span class="st">"gender_combination"</span>,</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>                <span class="at">hypothesis =</span> <span class="sc">~</span>pairwise)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<!-- preamble start -->
+
+    <script>
+
+      function styleCell_r4wx1wubaqueo1qd6yij(i, j, css_id) {
+          var table = document.getElementById("tinytable_r4wx1wubaqueo1qd6yij");
+          var cell = table.querySelector(`[data-row="${i}"][data-col="${j}"]`);
+          if (cell) {
+              console.log(`Styling cell at (${i}, ${j}) with class ${css_id}`);
+              cell.classList.add(css_id);
+          } else {
+              console.warn(`Cell at (${i}, ${j}) not found.`);
+          }
+      }
+      function spanCell_r4wx1wubaqueo1qd6yij(i, j, rowspan, colspan) {
+        var table = document.getElementById("tinytable_r4wx1wubaqueo1qd6yij");
+        const targetCell = table.querySelector(`[data-row="${i}"][data-col="${j}"]`);
+        if (!targetCell) {
+          console.warn(`Cell at (${i}, ${j}) not found.`);
+        }
+
+        // Get all cells that need to be removed
+        const cellsToRemove = [];
+        for (let r = 0; r < rowspan; r++) {
+          for (let c = 0; c < colspan; c++) {
+            if (r === 0 && c === 0) continue; // Skip the target cell
+            const cell = table.querySelector(`[data-row="${i + r}"][data-col="${j + c}"]`);
+            if (cell) {
+              cellsToRemove.push(cell);
+            }
+          }
+        }
+
+        // Remove all cells
+        cellsToRemove.forEach(cell => cell.remove());
+
+        // Set rowspan and colspan of the target cell if it exists
+        if (targetCell) {
+          targetCell.rowSpan = rowspan;
+          targetCell.colSpan = colspan;
+        }
+      }
+      // tinytable span after
+      window.addEventListener('load', function () {
+          var cellsToStyle = [
+            // tinytable style arrays after
+          { positions: [ { i: '3', j: 0 }, { i: '3', j: 1 }, { i: '3', j: 2 }, { i: '3', j: 3 },  ], css_id: 'tinytable_css_k6dan4hbk414y6gl9883',}, 
+          { positions: [ { i: '0', j: 0 }, { i: '0', j: 1 }, { i: '0', j: 2 }, { i: '0', j: 3 },  ], css_id: 'tinytable_css_46ymnargyh8yl99xmhx4',}, 
+          ];
+
+          // Loop over the arrays to style the cells
+          cellsToStyle.forEach(function (group) {
+              group.positions.forEach(function (cell) {
+                  styleCell_r4wx1wubaqueo1qd6yij(cell.i, cell.j, group.css_id);
+              });
+          });
+      });
+    </script>
+
+    <style>
+      /* tinytable css entries after */
+      .table td.tinytable_css_k6dan4hbk414y6gl9883, .table th.tinytable_css_k6dan4hbk414y6gl9883 { border-bottom: solid #d3d8dc 0.1em; }
+      .table td.tinytable_css_46ymnargyh8yl99xmhx4, .table th.tinytable_css_46ymnargyh8yl99xmhx4 { border-top: solid #d3d8dc 0.1em; border-bottom: solid #d3d8dc 0.05em; }
+    </style>
+    <div class="container">
+      <table class="table table-borderless" id="tinytable_r4wx1wubaqueo1qd6yij" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
+        <thead>
+        
+              <tr>
+                <th scope="col" data-row="0" data-col="0">Hypothesis</th>
+                <th scope="col" data-row="0" data-col="1">Estimate</th>
+                <th scope="col" data-row="0" data-col="2">2.5 %</th>
+                <th scope="col" data-row="0" data-col="3">97.5 %</th>
+              </tr>
+        </thead>
+        
+        <tbody>
+                <tr>
+                  <td data-row="1" data-col="0">(Mixed) - (Boys)</td>
+                  <td data-row="1" data-col="1">-0.1355</td>
+                  <td data-row="1" data-col="2">-0.2384</td>
+                  <td data-row="1" data-col="3">-0.0346</td>
+                </tr>
+                <tr>
+                  <td data-row="2" data-col="0">(Girls) - (Boys)</td>
+                  <td data-row="2" data-col="1">0.0273</td>
+                  <td data-row="2" data-col="2">-0.1169</td>
+                  <td data-row="2" data-col="3">0.1704</td>
+                </tr>
+                <tr>
+                  <td data-row="3" data-col="0">(Girls) - (Mixed)</td>
+                  <td data-row="3" data-col="1">0.1607</td>
+                  <td data-row="3" data-col="2">0.0441</td>
+                  <td data-row="3" data-col="3">0.2760</td>
+                </tr>
+        </tbody>
+      </table>
+    </div>
+<!-- hack to avoid NA insertion in last line -->
+</div>
+</div>
+</section>
+<section id="is-the-effect-of-sharing-a-desk-stronger-for-students-on-gender-matched-desks-relative-to-the-effect-of-sharing-a-desk-for-students-on-mixed-gender-desks" class="level4">
+<h4 class="anchored" data-anchor-id="is-the-effect-of-sharing-a-desk-stronger-for-students-on-gender-matched-desks-relative-to-the-effect-of-sharing-a-desk-for-students-on-mixed-gender-desks">Is the effect of sharing a desk stronger for students on gender-matched desks, relative to the effect of sharing a desk for students on mixed-gender desks?</h4>
+<p>We may also want to compare gender-matched dyads (pairs of girls, pairs of boys) with gender-mismatched dyads (pairs of a girl and a boy), (b_Two girls + b_Two boys)/2 = b_One girl one boy. This can be achieved by using a different hypothesis argument (being mindful of the order in which the groups are listed in our output):</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="fu">avg_comparisons</span>(mod,</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>                <span class="at">variables =</span> <span class="st">"deskmate"</span>,</span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>                <span class="at">by =</span> <span class="st">"gender_combination"</span>,</span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>                <span class="at">hypothesis =</span> <span class="st">"(b1 + b3)/2 = b2"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<!-- preamble start -->
+
+    <script>
+
+      function styleCell_sroiqvhm2xd29t95pzyj(i, j, css_id) {
+          var table = document.getElementById("tinytable_sroiqvhm2xd29t95pzyj");
+          var cell = table.querySelector(`[data-row="${i}"][data-col="${j}"]`);
+          if (cell) {
+              console.log(`Styling cell at (${i}, ${j}) with class ${css_id}`);
+              cell.classList.add(css_id);
+          } else {
+              console.warn(`Cell at (${i}, ${j}) not found.`);
+          }
+      }
+      function spanCell_sroiqvhm2xd29t95pzyj(i, j, rowspan, colspan) {
+        var table = document.getElementById("tinytable_sroiqvhm2xd29t95pzyj");
+        const targetCell = table.querySelector(`[data-row="${i}"][data-col="${j}"]`);
+        if (!targetCell) {
+          console.warn(`Cell at (${i}, ${j}) not found.`);
+        }
+
+        // Get all cells that need to be removed
+        const cellsToRemove = [];
+        for (let r = 0; r < rowspan; r++) {
+          for (let c = 0; c < colspan; c++) {
+            if (r === 0 && c === 0) continue; // Skip the target cell
+            const cell = table.querySelector(`[data-row="${i + r}"][data-col="${j + c}"]`);
+            if (cell) {
+              cellsToRemove.push(cell);
+            }
+          }
+        }
+
+        // Remove all cells
+        cellsToRemove.forEach(cell => cell.remove());
+
+        // Set rowspan and colspan of the target cell if it exists
+        if (targetCell) {
+          targetCell.rowSpan = rowspan;
+          targetCell.colSpan = colspan;
+        }
+      }
+      // tinytable span after
+      window.addEventListener('load', function () {
+          var cellsToStyle = [
+            // tinytable style arrays after
+          { positions: [ { i: '1', j: 0 }, { i: '1', j: 1 }, { i: '1', j: 2 }, { i: '1', j: 3 },  ], css_id: 'tinytable_css_icbhsxxgjh2mrfr6cnz5',}, 
+          { positions: [ { i: '0', j: 0 }, { i: '0', j: 1 }, { i: '0', j: 2 }, { i: '0', j: 3 },  ], css_id: 'tinytable_css_9bw1ljolclfuez38920l',}, 
+          ];
+
+          // Loop over the arrays to style the cells
+          cellsToStyle.forEach(function (group) {
+              group.positions.forEach(function (cell) {
+                  styleCell_sroiqvhm2xd29t95pzyj(cell.i, cell.j, group.css_id);
+              });
+          });
+      });
+    </script>
+
+    <style>
+      /* tinytable css entries after */
+      .table td.tinytable_css_icbhsxxgjh2mrfr6cnz5, .table th.tinytable_css_icbhsxxgjh2mrfr6cnz5 { border-bottom: solid #d3d8dc 0.1em; }
+      .table td.tinytable_css_9bw1ljolclfuez38920l, .table th.tinytable_css_9bw1ljolclfuez38920l { border-top: solid #d3d8dc 0.1em; border-bottom: solid #d3d8dc 0.05em; }
+    </style>
+    <div class="container">
+      <table class="table table-borderless" id="tinytable_sroiqvhm2xd29t95pzyj" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
+        <thead>
+        
+              <tr>
+                <th scope="col" data-row="0" data-col="0">Hypothesis</th>
+                <th scope="col" data-row="0" data-col="1">Estimate</th>
+                <th scope="col" data-row="0" data-col="2">2.5 %</th>
+                <th scope="col" data-row="0" data-col="3">97.5 %</th>
+              </tr>
+        </thead>
+        
+        <tbody>
+                <tr>
+                  <td data-row="1" data-col="0">(b1+b3)/2=b2</td>
+                  <td data-row="1" data-col="1">0.149</td>
+                  <td data-row="1" data-col="2">0.0667</td>
+                  <td data-row="1" data-col="3">0.229</td>
+                </tr>
+        </tbody>
+      </table>
+    </div>
+<!-- hack to avoid NA insertion in last line -->
+</div>
+</div>
+</section>
+<section id="plotting-the-effects-by-gender" class="level4">
+<h4 class="anchored" data-anchor-id="plotting-the-effects-by-gender">Plotting the effects by gender</h4>
+<p>We can also visualize these different effects:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot the predicted probabilities</span></span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot_predictions</span>(mod, <span class="at">by =</span> <span class="fu">c</span>(<span class="st">"gender_combination"</span>, <span class="st">"deskmate"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="deskmates_files/figure-html/unnamed-chunk-10-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Plot the effects of the intervention in percentage points</span></span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a><span class="fu">plot_comparisons</span>(mod, <span class="at">variables =</span> <span class="st">"deskmate"</span>, <span class="at">by =</span> <span class="st">"gender_combination"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="deskmates_files/figure-html/unnamed-chunk-10-2.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
+</div>
+</section>
+</section>
+<section id="marginalizing-over-vs.-conditioning-on-other-variables-in-the-model" class="level3">
+<h3 class="anchored" data-anchor-id="marginalizing-over-vs.-conditioning-on-other-variables-in-the-model">Marginalizing over vs.&nbsp;conditioning on other variables in the model</h3>
+<p>Notice that so far, we have conducted counterfactual comparisons across deskmate and then simply averaged by gender_combination. Now, recall that our model also contains GPA_difference. The way we currently analyze the data, we do not condition on GPA_difference during post-estimation—that is, we do not hold it constant at any particular value. The different gender_combinations may systematically vary in their GPA_difference, which may in turn modify the effect of the intervention; these differences will show up in our average comparison by gender_combination. One could say we “marginalize over” the observed GPA_difference distribution. T his “default” behavior is different from how regression coefficients behave, which are always conditional on all other variables in the model.</p>
+<p>It turns out that from a causal inference perspective (<a href="https://journals.sagepub.com/doi/full/10.1177/2515245917745629" target="_blank">Rohrer, 2018</a>; <a href="https://journals.sagepub.com/doi/10.1177/25152459221095823" target="_blank">Wysocki et al., 2022</a>), marginalizing over GPA_differences rather than conditioning on them is the more reasonable choice. That is because differences in GPA are plausibly causally downstream of gender differences. For gender-mismatched dyads, we may observe larger differences in GPA because gender affects GPA. Thus, if the effects of proximity are larger in gender-mismatched dyads in part because among those dyads, GPA varies more, this indirect effect should count toward the total effect modification by gender combination.</p>
+<p>In contrast, when we want to evaluate how GPA_differences affect the effects of proximity, we do want to condition on gender_combination, since the variable is a plausible confounder between GPA_differences and the effects of interest. If the intervention works less for pairs with a larger GPA difference, that may simply be because those pairs are more often mismatched on gender and thus unlikely to befriend each other even when seated next to each other (for a more extensive discussion of the causal status of interactions, see <a href="https://journals.sagepub.com/doi/10.1177/25152459211007368#sec-3" target="_blank">Rohrer &amp; Arslan, 2021</a>).</p>
+<section id="what-is-the-average-treatment-effect-of-sharing-a-desk-for-students-with-high-and-low-differences-in-gpa-accounting-for-gender" class="level4">
+<h4 class="anchored" data-anchor-id="what-is-the-average-treatment-effect-of-sharing-a-desk-for-students-with-high-and-low-differences-in-gpa-accounting-for-gender">What is the average treatment effect of sharing a desk for students with high and low differences in GPA, accounting for gender?</h4>
+<p>So, does the effect of being seated next to each other (deskmate) vary by how strong their academic achievement diverges (GPA_difference), controlling for the effects of gender match (gender_combination)? We can answer this question by conducting comparisons on new hypothetical datasets in which we set GPA_difference to particular values (e.g., ± 1 SD) but keep the other variables (including gender_match) as is.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="fu">avg_comparisons</span>(mod,</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>                <span class="at">variables =</span> <span class="st">"deskmate"</span>, <span class="co"># cause of interest</span></span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>                <span class="at">by =</span> <span class="st">"GPA_difference"</span>, <span class="co"># variable to split by</span></span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>                <span class="at">newdata =</span> <span class="fu">datagrid</span>(<span class="at">GPA_difference =</span> <span class="fu">c</span>(<span class="fu">mean</span>(dat<span class="sc">$</span>GPA_difference, <span class="at">na.rm =</span> <span class="cn">TRUE</span>) <span class="sc">-</span> <span class="fu">sd</span>(dat<span class="sc">$</span>GPA_difference, <span class="at">na.rm =</span> <span class="cn">TRUE</span>), </span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>                                                <span class="fu">mean</span>(dat<span class="sc">$</span>GPA_difference, <span class="at">na.rm =</span> <span class="cn">TRUE</span>) <span class="sc">+</span> <span class="fu">sd</span>(dat<span class="sc">$</span>GPA_difference, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)),</span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a>                                   <span class="at">grid_type =</span> <span class="st">"counterfactual"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<!-- preamble start -->
+
+    <script>
+
+      function styleCell_jkiv9avwj129i4ls7y73(i, j, css_id) {
+          var table = document.getElementById("tinytable_jkiv9avwj129i4ls7y73");
+          var cell = table.querySelector(`[data-row="${i}"][data-col="${j}"]`);
+          if (cell) {
+              console.log(`Styling cell at (${i}, ${j}) with class ${css_id}`);
+              cell.classList.add(css_id);
+          } else {
+              console.warn(`Cell at (${i}, ${j}) not found.`);
+          }
+      }
+      function spanCell_jkiv9avwj129i4ls7y73(i, j, rowspan, colspan) {
+        var table = document.getElementById("tinytable_jkiv9avwj129i4ls7y73");
+        const targetCell = table.querySelector(`[data-row="${i}"][data-col="${j}"]`);
+        if (!targetCell) {
+          console.warn(`Cell at (${i}, ${j}) not found.`);
+        }
+
+        // Get all cells that need to be removed
+        const cellsToRemove = [];
+        for (let r = 0; r < rowspan; r++) {
+          for (let c = 0; c < colspan; c++) {
+            if (r === 0 && c === 0) continue; // Skip the target cell
+            const cell = table.querySelector(`[data-row="${i + r}"][data-col="${j + c}"]`);
+            if (cell) {
+              cellsToRemove.push(cell);
+            }
+          }
+        }
+
+        // Remove all cells
+        cellsToRemove.forEach(cell => cell.remove());
+
+        // Set rowspan and colspan of the target cell if it exists
+        if (targetCell) {
+          targetCell.rowSpan = rowspan;
+          targetCell.colSpan = colspan;
+        }
+      }
+      // tinytable span after
+      window.addEventListener('load', function () {
+          var cellsToStyle = [
+            // tinytable style arrays after
+          { positions: [ { i: '2', j: 0 }, { i: '2', j: 1 }, { i: '2', j: 2 }, { i: '2', j: 3 },  ], css_id: 'tinytable_css_ur71ph6xox1qv838b8ek',}, 
+          { positions: [ { i: '0', j: 0 }, { i: '0', j: 1 }, { i: '0', j: 2 }, { i: '0', j: 3 },  ], css_id: 'tinytable_css_pdhsru0c7sg4ru15khbm',}, 
+          ];
+
+          // Loop over the arrays to style the cells
+          cellsToStyle.forEach(function (group) {
+              group.positions.forEach(function (cell) {
+                  styleCell_jkiv9avwj129i4ls7y73(cell.i, cell.j, group.css_id);
+              });
+          });
+      });
+    </script>
+
+    <style>
+      /* tinytable css entries after */
+      .table td.tinytable_css_ur71ph6xox1qv838b8ek, .table th.tinytable_css_ur71ph6xox1qv838b8ek { border-bottom: solid #d3d8dc 0.1em; }
+      .table td.tinytable_css_pdhsru0c7sg4ru15khbm, .table th.tinytable_css_pdhsru0c7sg4ru15khbm { border-top: solid #d3d8dc 0.1em; border-bottom: solid #d3d8dc 0.05em; }
+    </style>
+    <div class="container">
+      <table class="table table-borderless" id="tinytable_jkiv9avwj129i4ls7y73" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
+        <thead>
+        
+              <tr>
+                <th scope="col" data-row="0" data-col="0">GPA_difference</th>
+                <th scope="col" data-row="0" data-col="1">Estimate</th>
+                <th scope="col" data-row="0" data-col="2">2.5 %</th>
+                <th scope="col" data-row="0" data-col="3">97.5 %</th>
+              </tr>
+        </thead>
+        
+        <tbody>
+                <tr>
+                  <td data-row="1" data-col="0">0.139</td>
+                  <td data-row="1" data-col="1">0.1186</td>
+                  <td data-row="1" data-col="2">0.0597</td>
+                  <td data-row="1" data-col="3">0.182</td>
+                </tr>
+                <tr>
+                  <td data-row="2" data-col="0">1.504</td>
+                  <td data-row="2" data-col="1">0.0973</td>
+                  <td data-row="2" data-col="2">0.0375</td>
+                  <td data-row="2" data-col="3">0.157</td>
+                </tr>
+        </tbody>
+      </table>
+    </div>
+<!-- hack to avoid NA insertion in last line -->
+</div>
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="co"># the newdata argument is crucial here: we apply the model to new data which represents a counterfactual constrast</span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a><span class="co"># between a world in which everybody's GPA difference is set to 1 SD below the mean</span></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a><span class="co"># and a world in which everybody's GPA difference is set to 1 SD above the mean.</span></span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Compare the two estimates</span></span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a><span class="fu">avg_comparisons</span>(mod,</span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>                <span class="at">variables =</span> <span class="st">"deskmate"</span>, <span class="co"># cause of interest</span></span>
+<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a>                <span class="at">by =</span> <span class="st">"GPA_difference"</span>, <span class="co"># variable to split by</span></span>
+<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a>                <span class="at">newdata =</span> <span class="fu">datagrid</span>(<span class="at">GPA_difference =</span> <span class="fu">c</span>(<span class="fu">mean</span>(dat<span class="sc">$</span>GPA_difference, <span class="at">na.rm =</span> <span class="cn">TRUE</span>) <span class="sc">-</span> <span class="fu">sd</span>(dat<span class="sc">$</span>GPA_difference, <span class="at">na.rm =</span> <span class="cn">TRUE</span>), </span>
+<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a>                                                <span class="fu">mean</span>(dat<span class="sc">$</span>GPA_difference, <span class="at">na.rm =</span> <span class="cn">TRUE</span>) <span class="sc">+</span> <span class="fu">sd</span>(dat<span class="sc">$</span>GPA_difference, <span class="at">na.rm =</span> <span class="cn">TRUE</span>)),</span>
+<span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a>                                   <span class="at">grid_type =</span> <span class="st">"counterfactual"</span>),</span>
+<span id="cb22-12"><a href="#cb22-12" aria-hidden="true" tabindex="-1"></a>                <span class="at">hypothesis =</span> <span class="st">"b1 = b2"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<!-- preamble start -->
+
+    <script>
+
+      function styleCell_ikdmdpspm8hx7ftxy93n(i, j, css_id) {
+          var table = document.getElementById("tinytable_ikdmdpspm8hx7ftxy93n");
+          var cell = table.querySelector(`[data-row="${i}"][data-col="${j}"]`);
+          if (cell) {
+              console.log(`Styling cell at (${i}, ${j}) with class ${css_id}`);
+              cell.classList.add(css_id);
+          } else {
+              console.warn(`Cell at (${i}, ${j}) not found.`);
+          }
+      }
+      function spanCell_ikdmdpspm8hx7ftxy93n(i, j, rowspan, colspan) {
+        var table = document.getElementById("tinytable_ikdmdpspm8hx7ftxy93n");
+        const targetCell = table.querySelector(`[data-row="${i}"][data-col="${j}"]`);
+        if (!targetCell) {
+          console.warn(`Cell at (${i}, ${j}) not found.`);
+        }
+
+        // Get all cells that need to be removed
+        const cellsToRemove = [];
+        for (let r = 0; r < rowspan; r++) {
+          for (let c = 0; c < colspan; c++) {
+            if (r === 0 && c === 0) continue; // Skip the target cell
+            const cell = table.querySelector(`[data-row="${i + r}"][data-col="${j + c}"]`);
+            if (cell) {
+              cellsToRemove.push(cell);
+            }
+          }
+        }
+
+        // Remove all cells
+        cellsToRemove.forEach(cell => cell.remove());
+
+        // Set rowspan and colspan of the target cell if it exists
+        if (targetCell) {
+          targetCell.rowSpan = rowspan;
+          targetCell.colSpan = colspan;
+        }
+      }
+      // tinytable span after
+      window.addEventListener('load', function () {
+          var cellsToStyle = [
+            // tinytable style arrays after
+          { positions: [ { i: '1', j: 0 }, { i: '1', j: 1 }, { i: '1', j: 2 }, { i: '1', j: 3 },  ], css_id: 'tinytable_css_loww6omi3d4da8k6d027',}, 
+          { positions: [ { i: '0', j: 0 }, { i: '0', j: 1 }, { i: '0', j: 2 }, { i: '0', j: 3 },  ], css_id: 'tinytable_css_z7y5ufms4t5q8tz7hb4x',}, 
+          ];
+
+          // Loop over the arrays to style the cells
+          cellsToStyle.forEach(function (group) {
+              group.positions.forEach(function (cell) {
+                  styleCell_ikdmdpspm8hx7ftxy93n(cell.i, cell.j, group.css_id);
+              });
+          });
+      });
+    </script>
+
+    <style>
+      /* tinytable css entries after */
+      .table td.tinytable_css_loww6omi3d4da8k6d027, .table th.tinytable_css_loww6omi3d4da8k6d027 { border-bottom: solid #d3d8dc 0.1em; }
+      .table td.tinytable_css_z7y5ufms4t5q8tz7hb4x, .table th.tinytable_css_z7y5ufms4t5q8tz7hb4x { border-top: solid #d3d8dc 0.1em; border-bottom: solid #d3d8dc 0.05em; }
+    </style>
+    <div class="container">
+      <table class="table table-borderless" id="tinytable_ikdmdpspm8hx7ftxy93n" style="width: auto; margin-left: auto; margin-right: auto;" data-quarto-disable-processing="true">
+        <thead>
+        
+              <tr>
+                <th scope="col" data-row="0" data-col="0">Hypothesis</th>
+                <th scope="col" data-row="0" data-col="1">Estimate</th>
+                <th scope="col" data-row="0" data-col="2">2.5 %</th>
+                <th scope="col" data-row="0" data-col="3">97.5 %</th>
+              </tr>
+        </thead>
+        
+        <tbody>
+                <tr>
+                  <td data-row="1" data-col="0">b1=b2</td>
+                  <td data-row="1" data-col="1">0.0212</td>
+                  <td data-row="1" data-col="2">-0.0664</td>
+                  <td data-row="1" data-col="3">0.116</td>
+                </tr>
+        </tbody>
+      </table>
+    </div>
+<!-- hack to avoid NA insertion in last line -->
+</div>
+</div>
+
+
+</section>
+</section>
+</section>
+</section>
+
+</main> <!-- /main -->
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+        const codeEl = trigger.previousElementSibling.cloneNode(true);
+        for (const childEl of codeEl.children) {
+          if (isCodeAnnotation(childEl)) {
+            childEl.remove();
+          }
+        }
+        return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+
+
+
+
+</body></html>

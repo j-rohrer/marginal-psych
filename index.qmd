@@ -13,6 +13,7 @@ Examples:
 1. [Friends by Chance](examples/deskmates.html)
 1. [Relationship Status and Friendships](examples/relationship.html)
 1. [Age Trajectories](examples/age.html)
+1. [German Socio-Economic Panel Study](examples/soep.html)
 
 Download the [full replication package here.](assets/models_as_prediction_machines.zip)
 
