@@ -213,11 +213,11 @@ mean(p1$eta1 - p0$eta1)
 #| eval: false
 #| echo: false
 library(brms)
-mod_ord_brm <- brm(
-            friendship_importance_factor ~ bs(age, df = 4) + gender + partner +
-                        bs(age, df = 4):gender + partner:gender + bs(age, df = 4):partner,
-            data = dat,
-            family = cumulative(link = "probit"), 
+mod_ord <- brm(
+    friendship_importance_factor ~ bs(age, df = 4) + gender + partner +
+    bs(age, df = 4):gender + partner:gender + bs(age, df = 4):partner,
+    data = dat,
+    family = cumulative(link = "probit"))
             backend = "cmdstanr",
             chains = 4, cores = 4, iter = 4000)
 saveRDS(mod_ord_brm, here("fits/relationship_ordinal_brm.rds"))
@@ -225,21 +225,19 @@ saveRDS(mod_ord_brm, here("fits/relationship_ordinal_brm.rds"))
 ```{r}
 #| eval: false
 library(brms)
-mod_ord_brm <- brm(
-            friendship_importance_factor ~ bs(age, df = 4) + gender + partner +
-                        bs(age, df = 4):gender + partner:gender + bs(age, df = 4):partner,
-            data = dat,
-            family = cumulative(link = "probit"), 
-            backend = "cmdstanr",
-            chains = 4, cores = 4, iter = 4000)
+mod_ord <- brm(
+    friendship_importance_factor ~ bs(age, df = 4) + gender + partner +
+    bs(age, df = 4):gender + partner:gender + bs(age, df = 4):partner,
+    data = dat,
+    family = cumulative(link = "probit"))
 ```
 ```{r}
 #| include: false
 mod_ord_brm <- readRDS(here("fits/relationship_ordinal_brm.rds"))
 ```
 ```{r}
-avg_comparisons(mod_ord_brm, variables = "partner")
-avg_comparisons(mod_ord_brm, variables = "partner", type = "link")
+avg_comparisons(mod_ord, variables = "partner")
+avg_comparisons(mod_ord, variables = "partner", type = "link")
 ```
 
 ## Varying the complexity of the linear model to see what happens
