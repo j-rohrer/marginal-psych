@@ -134,7 +134,7 @@ slope_range <- c(0, 60000)
 ## Color scheme
 color_prediction <- "#0072B2"
 color_comparison <- "#56B4E9"
-color_slope <- "#009E73"
+color_slope <- "#D55E00"
 color_neutral <- "#BBBBBB"
 
 
