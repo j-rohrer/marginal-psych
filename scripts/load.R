@@ -14,7 +14,9 @@ library(tinytable)
 theme_set(theme_classic())
 options(marginaleffects_safe = FALSE)
 options(marginaleffects_print_type = FALSE)
-options(marginaleffects_print_style = "tinytable")
-options(width = 300)
+if (!interactive()) {
+  options(marginaleffects_print_style = "tinytable")
+  options(width = 300)
+}
 knitr::opts_chunk$set(error = TRUE, echo = TRUE, warning = FALSE, message = FALSE)
 knitr::opts_chunk$set(error = TRUE, echo = TRUE)
