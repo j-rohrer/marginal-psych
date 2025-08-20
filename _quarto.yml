@@ -11,14 +11,14 @@ website:
         text: Replication package
       - text: Examples
         menu:
+          - href: examples/soep.qmd
+            text: "Illustrating target quantities"
           - href: examples/relationship.qmd
             text: "Relationship Status and Friends"
           - href: examples/deskmates.qmd
             text: "Friends by Chance"
-          - href: examples/age.qmd
-            text: "Age Trajectories"
-          - href: examples/soep.qmd
-            text: "German Socio-Economic Panel Study"
+
+
 
 format:
   html:

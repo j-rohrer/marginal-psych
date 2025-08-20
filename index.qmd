@@ -8,12 +8,14 @@ This website hosts a replication package and extra case studies to accompany thi
 
 You can find the article on: [Insert Website Address](https://perdu.com)
 
-Examples:
+Worked Examples:
 
-1. [Friends by Chance](examples/deskmates.html)
-1. [Relationship Status and Friendships](examples/relationship.html)
-1. [Age Trajectories](examples/age.html)
-1. [German Socio-Economic Panel Study](examples/soep.html)
+0. [Illustrating target quantities](examples/soep.html)
+
+1. [Relationship Status and the Importance of Friends](examples/relationship.html)
+
+2. [Friends by Chance](examples/deskmates.html)
+
 
 Download the [full replication package here.](assets/models_as_prediction_machines.zip)
 
