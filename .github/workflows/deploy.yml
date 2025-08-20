@@ -1,0 +1,25 @@
+name: Deploy website
+
+on:
+  push:
+    branches:
+      - main   # or "master" if that's your default branch
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      # (Optional) If you need R to build the site, add setup here
+      # For example, install R + dependencies and run `rmarkdown::render_site()`
+
+      - name: Deploy _site to gh-pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./_site
+
+
