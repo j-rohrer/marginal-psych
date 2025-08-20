@@ -2,7 +2,7 @@
 
 ## How to Convert Confusing Coefficients into Clear Quantities
 
-This website hosts a replication package and extra case studies to accompany this article:
+This website hosts a replication package detailed worked examples to accompany this article:
 
 > "Models as Prediction Machines: How to Convert Confusing Coefficients into Clear Quantities" by Julia M. Rohrer and Vincent Arel-Bundock (2025)
 
