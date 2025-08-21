@@ -1,4 +1,4 @@
-# German Socio-Economic Panel Study
+# Illustrating target quantities
 
 Before we start, let's execute [a helper script](https://github.com/j-rohrer/marginal-psych/blob/main/scripts/load.R) that loads the necessary dependencies.
 

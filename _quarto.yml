@@ -14,9 +14,9 @@ website:
           - href: examples/soep.qmd
             text: "Illustrating target quantities"
           - href: examples/relationship.qmd
-            text: "Relationship Status and Friends"
+            text: "Worked Example 1: Relationship Status and Friends"
           - href: examples/deskmates.qmd
-            text: "Friends by Chance"
+            text: "Worked Example 2: Friends by Chance"
 
 
 
