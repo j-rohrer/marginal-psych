@@ -6,7 +6,7 @@ This website hosts a replication package detailed worked examples to accompany t
 
 > "Models as Prediction Machines: How to Convert Confusing Coefficients into Clear Quantities" by Julia M. Rohrer and Vincent Arel-Bundock (2025)
 
-You can find the article on: [Insert Website Address](https://perdu.com)
+You can find the article on: [TBA](https://perdu.com)
 
 Worked Examples:
 
