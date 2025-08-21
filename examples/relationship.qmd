@@ -150,15 +150,63 @@ ggplot(comp, aes(x = age, y = estimate, ymin = conf.low, ymax = conf.high)) +
 
 So far, we have simply conducted linear regressions, but that may be considered suspect given the nature of the outcome: it’s just a five-point response scale ranging from not important at all to very important. 
 And, in fact, barely anybody used the lower response options—more than 40% picked the highest response option. 
-This results in a distribution for which the assumptions of linear regression may be considered heroic. 
+This results in a distribution for which the assumptions of linear regression may be considered unrealistic. 
 
 So, let’s run an ordinal regression to see whether conclusions change. 
-Here, we are going to fit a cumulative ordinal model with a probit link using the ordinal package [(Christensen, 2023)](https://cran.r-project.org/web/packages/ordinal/index.html){target="_blank"} using the clm() function. 
+
+
+Here, we are going to fit a cumulative ordinal model with a probit link using the brms package [(Bürkner, 2018)](https://cran.r-project.org/web/packages/brms/index.html}. 
 In essence, this approach assumes a continuous, normally distributed standardized latent variable (“true” friendship_importance) which is translated into the ordinal response variable following thresholds that are estimated from the data; for example, people who score -3 or less on the standardized latent variable may report that their friends are not important at all, people who score more than that but below -2.7 may pick the second lowest response option, and so on (see [Bürkner & Vuorre, 2019](https://journals.sagepub.com/doi/10.1177/2515245918823199){target="_blank"} for a proper introduction to these models). 
 
 The rest of the model specification remains unchanged:
 
 ```{r}
+#| eval: false
+#| echo: false
+mod_ord <- brm(
+    friendship_importance_factor ~ bs(age, df = 4) + gender + partner +
+    bs(age, df = 4):gender + partner:gender + bs(age, df = 4):partner,
+    data = dat,
+    family = cumulative(link = "probit"))
+            backend = "cmdstanr",
+            chains = 4, cores = 4, iter = 4000)
+saveRDS(mod_ord_brm, here("fits/relationship_ordinal_brm.rds"))
+```
+
+```{r}
+#| include: false
+mod_ord <- readRDS(here("fits/relationship_ordinal_brm.rds"))
+```
+
+
+We can evaluate the association of interest using the same average comparison as before:
+
+```{r}
+avg_comparisons(mod_ord, variables = "partner")
+```
+
+The resulting output, however, differs. By default, the output shows how the probability of any response category of friendship_importance when partner changes from 0 to 1. The response categories 1 to 4 become slightly more likely with partner = 1, whereas the probability of giving the highest rating, 5, decreases by 5.5 percentage points. 
+
+We can also compute the comparison on the assumed underlying latent variable, which is the scale on which the model coefficients are reported in the regression output: 
+
+```{r}
+avg_comparisons(mod_ord, variables = "partner", type = "link")
+```
+
+And, as promised in the main text, we can combine these category-specific estimates on the averaged scale.
+
+```{r}
+# Take the response probabilities and attach the integers 1:5 to the consecutive
+# response categories to arrive at the same metric as the linear model
+avg_comparisons(mod_ord, variables = "partner", hypothesis = ~ I(sum(x * 1:5)))
+``` 
+
+While this ensures that we ask the ordinal model precisely the same answer that we asked the linear model, it may appear a bit inconsistent given that we usually use ordinal models precisely because we don’t want to assign integer values to the response categories – although note that here we do it only in the very last step, so the model itself does not assume that the distances between adjacent response categories are the same.
+
+### Frequentist ordinal robustness check
+
+```{r}
+
 # Outcome as factor variable which is what clm() expects
 dat$friendship_importance_factor <- factor(dat$friendship_importance, ordered = TRUE)
 
@@ -170,29 +218,14 @@ mod_ord <- clm(friendship_importance_factor ~ bs(age, df = 4) + gender + partner
 
 # Evaluate central comparison in terms of change in response probabilities
 avg_comparisons(mod_ord, variables = "partner") 
-# these results seem reasonable
-```
 
-It's hard to compare these results to the results from the linear model.
-If one really wants to generate an estimate that is as comparable as possible, one can assign integer values from 1 to 5 to the response categories and thus estimate what the ordinal model implies for the average:
 
-```{r}
-# Take the response probabilities and attach the integers 1:5 to the consecutive
-# response categories to arrive at the same metric as the linear model
-avg_comparisons(mod_ord, variables = "partner", hypothesis = ~ I(sum(x * 1:5)))
-``` 
-
-This makes use of the hypothesis argument, which allows researchers to conduct tests on arbitrary transformations of the quantities of interest.
-Here, we take each row of the standard output (the change in the probability of a given response option with partner), multiply it with the corresponding integer value (1 to 5), and sum everything up. 
-
-While this ensures that we ask the ordinal model precisely the same answer that we asked the linear model, it may appear a bit inconsistent given that we usually use ordinal models precisely because we don’t want to assign integer values to the response categories – although note that here we do it only in the very last step, so the model itself does not assume that the distances between adjacent response categories are the same.
-
-Much more in the spirit of the ordinal model, we can also compute the effect on the underlying continuous variable that the model assumes.
-
-```{r}
 # Evaluate effect on the underlying latent variable
 avg_comparisons(mod_ord, variables = "partner", type = "linear.predictor") 
+# Note that this estimate has the wrong sign
+# Likely to an upstream bug in clm()
 
+# Manually reconstruct
 dat$friendship_importance_factor <- factor(dat$friendship_importance, ordered = TRUE)
 mod_ord <- clm(friendship_importance_factor ~ bs(age, df = 4) + gender + partner +
             bs(age, df = 4):gender + partner:gender + bs(age, df = 4):partner, 
@@ -203,42 +236,14 @@ d1 <- transform(dat, partner = 1)
 p0 <- predict(mod_ord, newdata = d0, type = "linear.predictor")
 p1 <- predict(mod_ord, newdata = d1, type = "linear.predictor")
 mean(p1$eta1 - p0$eta1)
-# NOTE: This currently returns the wrong sign. Bug to be fixed
-``` 
+
+# If we do this manually, we also get the wrong sign
+# So something seems wrong about the predictions that clm returns
+
+```
 
 
-#### Bayesian ordinal regression
 
-```{r}
-#| eval: false
-#| echo: false
-library(brms)
-mod_ord <- brm(
-    friendship_importance_factor ~ bs(age, df = 4) + gender + partner +
-    bs(age, df = 4):gender + partner:gender + bs(age, df = 4):partner,
-    data = dat,
-    family = cumulative(link = "probit"))
-            backend = "cmdstanr",
-            chains = 4, cores = 4, iter = 4000)
-saveRDS(mod_ord_brm, here("fits/relationship_ordinal_brm.rds"))
-```
-```{r}
-#| eval: false
-library(brms)
-mod_ord <- brm(
-    friendship_importance_factor ~ bs(age, df = 4) + gender + partner +
-    bs(age, df = 4):gender + partner:gender + bs(age, df = 4):partner,
-    data = dat,
-    family = cumulative(link = "probit"))
-```
-```{r}
-#| include: false
-mod_ord_brm <- readRDS(here("fits/relationship_ordinal_brm.rds"))
-```
-```{r}
-avg_comparisons(mod_ord, variables = "partner")
-avg_comparisons(mod_ord, variables = "partner", type = "link")
-```
 
 ## Varying the complexity of the linear model to see what happens
 Let's vary model complexity to see what happens to our target quantity, the association between having a partner and friendship importance (holding constant age and gender).
