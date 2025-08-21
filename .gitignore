@@ -42,7 +42,7 @@ vignettes/*.pdf
 *.knit.md
 
 # HTML output files
-*.html
+# *.html
 
 # R Environment Variables
 .Renviron
