@@ -155,7 +155,7 @@ This results in a distribution for which the assumptions of linear regression ma
 So, let’s run an ordinal regression to see whether conclusions change. 
 
 
-Here, we are going to fit a cumulative ordinal model with a probit link using the brms package [(Bürkner, 2018)](https://cran.r-project.org/web/packages/brms/index.html}. 
+Here, we are going to fit a cumulative ordinal model with a probit link using the brms package [(Bürkner, 2018)](https://cran.r-project.org/web/packages/brms/index.html){target="_blank"}. 
 In essence, this approach assumes a continuous, normally distributed standardized latent variable (“true” friendship_importance) which is translated into the ordinal response variable following thresholds that are estimated from the data; for example, people who score -3 or less on the standardized latent variable may report that their friends are not important at all, people who score more than that but below -2.7 may pick the second lowest response option, and so on (see [Bürkner & Vuorre, 2019](https://journals.sagepub.com/doi/10.1177/2515245918823199){target="_blank"} for a proper introduction to these models). 
 
 The rest of the model specification remains unchanged:
