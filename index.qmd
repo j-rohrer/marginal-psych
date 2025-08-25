@@ -4,9 +4,9 @@
 
 This website hosts a replication package detailed worked examples to accompany this article:
 
-> "Models as Prediction Machines: How to Convert Confusing Coefficients into Clear Quantities" by Julia M. Rohrer and Vincent Arel-Bundock (2025)
+> "Rohrer, J. M., & Arel-Bundock, V. (2025, August 25). Models as Prediction Machines: How to Convert Confusing Coefficients into Clear Quantities.
 
-You can find the article on: [TBA](https://perdu.com)
+You can find the preprint on [PsyArXiv](https://osf.io/preprints/psyarxiv/g4s2a_v1){target="_blank"}, alternative download link [here](https://juliarohrer.com/wp-content/uploads/2025/08/models_as_prediction_machines.pdf){target="_blank"}.
 
 Worked Examples:
 
