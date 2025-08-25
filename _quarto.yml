@@ -10,7 +10,7 @@ website:
       - href: index.qmd
         text: Home
       - href: assets/models_as_prediction_machines.zip
-        text: Replication package
+        text: Replication package as ZIP
       - text: Examples
         menu:
           - href: examples/soep.qmd

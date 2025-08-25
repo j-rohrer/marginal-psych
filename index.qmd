@@ -17,6 +17,6 @@ Worked Examples:
 2. [Friends by Chance](examples/deskmates.html)
 
 
-Download the [full replication package here.](assets/models_as_prediction_machines.zip)
+Download the [full replication package as ZIP here.](assets/models_as_prediction_machines.zip)
 
 The material on this site is licensed under a [Creative Commons Attribution 4.0 International License](https://creativecommons.org/licenses/by/4.0/). This means that you can freely share and adapt the material, as long as you cite the article listed above.
