@@ -59,6 +59,7 @@ Our model here ends up a bit more complex due to the nested structure of the dat
 Since we now fit a Bayesian model (relying on the default priors provided by the package), marginaleffects will return credible intervals rather than confidence intervals. 
 Our unit of observation is pairs of students, which are nested within students and classrooms. 
 For each pair, we know:
+
 * whether they are deskmates
 * their gender_combination (both boys, one girl and one boy, both girls)
 * their GPA_average (i.e., the average across both students) and their absolute GPA_difference (i.e., the discrepancy between both students)
