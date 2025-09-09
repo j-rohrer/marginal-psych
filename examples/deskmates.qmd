@@ -124,22 +124,19 @@ This seems very close to the 11 percentage point effect we observed in our analy
 
 Would it be justified to conclude that the effects are practically the same?
 
-In a Frequentist framework, this would be a use case for an equivalence test. Given our Bayesian model, we instead resort to the notion of a region of practical equivalence (ROPE; [Kruschke, 2018](https://journals.sagepub.com/doi/pdf/10.1177/2515245918771304){target="_blank"}; [Makowski et al., 2019](https://www.frontiersin.org/journals/psychology/articles/10.3389/fpsyg.2019.02767/full){target="_blank"}. 
-First, we need to define a range around the 10 percentage points of the fast friends procedure for which we would consider the effects equivalent for practical purposes. Here, we decide that the effect ± a quarter of the effect is a sensible range, resulting in a ROPE of [0.075; 0.125]. 
+In a Frequentist framework, this would be a use case for an equivalence test, like the Two One Sample Test, or TOST (Lakens et al., 2018). 
+All the functions in the marginaleffects package have an equivalence argument that can execute a TOST for any of the quantities that the package estimates: predictions, comparisons, slopes, and even for complex quantities derived for non-linear hypothesis tests. 
+Since the model that we estimated above is Bayesian, marginaleffects will not conduct a TOST by default. 
+Instead, the equivalence argument will quantify the size of the posterior density in a region of practical equivalence (ROPE; Kruschke, 2018; Makowski et al., 2019).
 
-Now, we can calculate how likely it is that the effect of sitting next to each other falls into the ROPE of the fast friends procedure. For this, we additionally make use of the convenience provided by the posterior package:
-
+To do this, we first need to define a range around the estimated effect size of the fast friends procedure. 
+This range must be based on substantive and application-specific considerations. 
+For instance, the analyst could decide that if the effect of deskmates falls within ± a quarter of the fast friends effect, they will be considered “equivalent” to each other. In that case, the analyst would specify a ROPE of [0.075; 0.125]. 
+Now, we can use the equivalence argument to calculate how likely it is that the effect of sitting next to each other falls into this ROPE. 
 
 ```{r}
-library(posterior)
-draws <- get_draws(avg_comparisons(mod, variables = "deskmate"), "rvar")
-
-Pr(draws$rvar < 0.125) # Probability that below the upper bound
-Pr(draws$rvar < 0.075) # Probability that below the lower bound
-
-# In combination, from this we can conclude the probability that
-# the parameter lies within the bounds
-Pr(draws$rvar < 0.125) - Pr(draws$rvar < 0.075)
+avg_comparisons(mod, variables = "deskmate", 
+                       equivalence = c(0.075, 0.125)) 
 
 ```
 
@@ -195,30 +192,41 @@ plot_comparisons(mod, variables = "deskmate", by = "gender_combination")
 ```
 
 
-### Averaging Over vs. Conditioning on Other Variables in the Model
+### Third-Variable Control When Evaluating Moderation Claims
 
-Notice that so far, we have conducted counterfactual comparisons across deskmate and then simply averaged by gender_combination. 
-In the counterfactual comparison step, we control for other variables in the model. 
-But then when we average by gender_combination, we do not hold the other variables at any specific value – they simply naturally vary alongside gender_combination. 
-Thus, when we compare the treatment effects between different gender_combinations, we compare them between groups that may also vary with respect to other variables, including those that are part of the model.
-One may think of these results as the unconditional association between gender_combination and the treatment effects. 
-This is conceptually distinct from evaluating moderation by looking at model coefficients, since these coefficients are always conditional on all other predictors in the model.
-Thus, the default approach in the framework we champion differs from the default approach when interpreting coefficients, which warrants more discussion.
+So far, we have conducted counterfactual comparisons across deskmate, and taken averages for different gender_combinations. 
+When calculating the counterfactual comparison across deskmate, we hold all other variables in the model at their observed values and only vary deskmate to isolate the effects. 
+However, when taking the averages for different gender_combinations, we do not hold anything at any particular value—we simply aggregate the comparisons for each of the different groups, which may also vary on other variables.
 
-Should we condition on the other predictors in the model when evaluating moderation?
-First, this depends on what we are interested in – if we just want to know whether a third variable is associated with some treatment effect, there is no need to condition on other variables (unless we are explicitly interested in the conditional association for some reason). 
-However, if we are interested in a causal interaction, it may be necessary to condition on third variables to account for confounding (for a more extensive discussion of the causal status of interactions, see [Rohrer & Arslan, 2021](https://journals.sagepub.com/doi/10.1177/25152459211007368#sec-3){target="_blank"})). 
-Second, in the latter scenario, whether to condition on a variable or not will depend on whether it is a confounder of the causal interaction (in which case we should condition on it) rather than, for example, a mediator.
+Thus, what we have calculated so far is the unconditional association between gender_combination and the effect of being seated next to each other. 
+If, instead, we evaluated moderation by looking at model coefficients, we would look at conditional associations—because the coefficients always express associations conditional on all other variables in the model. 
+Thus, when evaluating moderation, the default approach in the framework we propose  differs from the default approach when interpreting coefficients. 
+In our approach, the association between the effects and the moderator is not “controlled for” all the other variables in the model. 
+When instead relying on regression coefficients, the association between the effects and the moderator is controlled for all other variables in the model.
 
-Recall that our model also contains GPA_difference. Pairs of students may vary in their GPA_difference, but these differences are plausibly causally downstream of gender_combination: For gender-mismatched dyads, we may observe larger differences in GPA because gender affects GPA (Gender combination → GPA difference → Effect of being seated next to each other). 
-Thus, GPA_difference is a potential mediator of gender_combination and should not be conditioned on when evaluating whether gender_combination causally affects the effects of being seated next to each other. This vindicates our earlier analysis.
+This naturally leads to the question whether we do want to control for other variables when evaluating moderation. 
+First of all, this depends on the precise estimand. 
+The term “moderation” can be used to refer to (1) merely the association between some moderator variable and the effects of some treatment or (2) a causal interaction in which intervening on the moderator would causally affect the effects of the treatment. 
+If we are interested just in the former, no additional control would be necessary. 
+If we are interested in the latter, additional control may be necessary to isolate the causal interaction. 
+However, whether any given variable should be controlled for depends on the underlying causal net; inappropriate control variables may actually increase bias (Rohrer, 2018; Wysocki et al., 2022).
 
-If we are interested in whether GPA_differences causally affect the effects of proximity, gender_combination is a confounder (GPA difference ← Gender combination → Effect of being seated next to each other). 
-Thus, to evaluate the interaction between GPA_difference and Deskmate, we do want to condition gender_combination.
+What applies to our scenario? 
+Let’s say we are interested in whether gender_combination causally interacts with deskmate. 
+So, in principle, additional control may be necessary. 
+Recall that our model also contains GPA_difference. 
+Should we control for GPA_differences between dyads to isolate the causal effect of gender_combination on the effects of deskmate?
+Different gender_combinations may indeed vary in their GPA_difference, but notice that these differences are most plausibly causally downstream of gender_combination. 
+For gender-mismatched dyads, we may observe larger differences in GPA because gender affects GPA (Gender combination → GPA difference → Effect of being seated next to each other; Figure 4). 
+Thus, GPA_difference is a potential mediator of gender_combination and should not be conditioned on when evaluating whether gender_combination causally affects the effects of being seated next to each other. 
+This vindicates our earlier analysis.
+
+Now, let’s imagine we were interested in whether GPA_differences causally affect the effects deskmate. 
+For this other estimand, gender_combination is a confounder (GPA difference ← Gender combination → Effect of being seated next to each other). 
+Thus, to evaluate the causal interaction between GPA_difference and deskmate, we do want to control for gender_combination. If differences in grades affect the effect of the intervention, then we should be able to observe an association between differences in grades and the effects of the intervention among dyads of the same type (e.g., among all female dyads).
 
 So, does the effect of being seated next to each other (deskmate) vary by how strong their academic achievement diverges (GPA_difference), controlling for the effects of gender match (gender_combination)? 
 We can answer this question by conducting comparisons on new hypothetical datasets in which we set GPA_difference to particular values (e.g., ± 1 SD) but keep the other variables (including gender_match) as is. 
-
 
 #### What is the average treatment effect of sharing a desk for students with high and low differences in GPA, accounting for gender?
 
