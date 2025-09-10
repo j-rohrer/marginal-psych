@@ -192,38 +192,34 @@ plot_comparisons(mod, variables = "deskmate", by = "gender_combination")
 ```
 
 
-### Third-Variable Control When Evaluating Moderation Claims
+### Causal Moderation and All-Else-Equal Claims
 
-So far, we have conducted counterfactual comparisons across deskmate, and taken averages for different gender_combinations. 
-When calculating the counterfactual comparison across deskmate, we hold all other variables in the model at their observed values and only vary deskmate to isolate the effects. 
-However, when taking the averages for different gender_combinations, we do not hold anything at any particular value—we simply aggregate the comparisons for each of the different groups, which may also vary on other variables.
+In the previous section, we used the avg_comparisons() function and its by argument to compute the average effect of deskmate within each subgroup of gender_combinations. 
+Under the hood, marginaleffects started by computing unit-level estimates in the full dataset, and then aggregated those estimates within each level of the moderator variable. 
+This approach makes sense if our goal is simply to establish whether the effect (or association) is stronger in some subsets of the population. 
+Indeed, our analysis showed that the positive effect of deskmate on the probability of striking a friendship was much stronger in matched gender pairs than in mixed gender pairs. 
+Unfortunately, the estimates reported above cannot tell us why the effects differ between subgroups. 
+They cannot establish that the effect changes because of the moderator, because the strata defined by the moderator may also vary in other variables that could explain the difference in effects.  
 
-Thus, what we have calculated so far is the unconditional association between gender_combination and the effect of being seated next to each other. 
-If, instead, we evaluated moderation by looking at model coefficients, we would look at conditional associations—because the coefficients always express associations conditional on all other variables in the model. 
-Thus, when evaluating moderation, the default approach in the framework we propose  differs from the default approach when interpreting coefficients. 
-In our approach, the association between the effects and the moderator is not “controlled for” all the other variables in the model. 
-When instead relying on regression coefficients, the association between the effects and the moderator is controlled for all other variables in the model.
+Researchers often do have the more ambitious research goal of establishing that some moderator causally affects the effect of interest (for the distinction between the non-causal and the causal “type” of moderation, see Bansak, 2021; VanderWeele, 2009; for an overview of different terminologies used for this distinction, see Rohrer and Arslan, 2021). 
+In that context, researchers must pay special attention to the distribution of potential confounders in the various moderator strata. 
+If such confounders of the moderation exist, it is important to conduct a counterfactual analysis that holds their distribution constant across moderator strata.
 
-This naturally leads to the question whether we do want to control for other variables when evaluating moderation. 
-First of all, this depends on the precise estimand. 
-The term “moderation” can be used to refer to (1) merely the association between some moderator variable and the effects of some treatment or (2) a causal interaction in which intervening on the moderator would causally affect the effects of the treatment. 
-If we are interested just in the former, no additional control would be necessary. 
-If we are interested in the latter, additional control may be necessary to isolate the causal interaction. 
-However, whether any given variable should be controlled for depends on the underlying causal net; inappropriate control variables may actually increase bias (Rohrer, 2018; Wysocki et al., 2022).
+Crucially, only confounders should be held constant.
+Holding constant variables that are potential mediators or colliders may actually increase bias ([Rohrer, 2018](https://journals.sagepub.com/doi/full/10.1177/2515245917745629){target="_blank"}; [Wysocki et al., 2022](https://journals.sagepub.com/doi/10.1177/25152459221095823){target="_blank"}).
 
-What applies to our scenario? 
-Let’s say we are interested in whether gender_combination causally interacts with deskmate. 
-So, in principle, additional control may be necessary. 
+First, let’s say we are interested in whether gender_combination causally interacts with deskmate. 
 Recall that our model also contains GPA_difference. 
 Should we control for GPA_differences between dyads to isolate the causal effect of gender_combination on the effects of deskmate?
 Different gender_combinations may indeed vary in their GPA_difference, but notice that these differences are most plausibly causally downstream of gender_combination. 
-For gender-mismatched dyads, we may observe larger differences in GPA because gender affects GPA (Gender combination → GPA difference → Effect of being seated next to each other; Figure 4). 
+For gender-mismatched dyads, we may observe larger differences in GPA because gender affects GPA (Gender combination → GPA difference → Effect of being seated next to each other). 
 Thus, GPA_difference is a potential mediator of gender_combination and should not be conditioned on when evaluating whether gender_combination causally affects the effects of being seated next to each other. 
 This vindicates our earlier analysis.
 
 Now, let’s imagine we were interested in whether GPA_differences causally affect the effects deskmate. 
 For this other estimand, gender_combination is a confounder (GPA difference ← Gender combination → Effect of being seated next to each other). 
-Thus, to evaluate the causal interaction between GPA_difference and deskmate, we do want to control for gender_combination. If differences in grades affect the effect of the intervention, then we should be able to observe an association between differences in grades and the effects of the intervention among dyads of the same type (e.g., among all female dyads).
+Thus, to evaluate the causal interaction between GPA_difference and deskmate, we do want to control for gender_combination. 
+If differences in grades affect the effect of the intervention, then we should be able to observe an association between differences in grades and the effects of the intervention among dyads of the same type (e.g., among all female dyads).
 
 So, does the effect of being seated next to each other (deskmate) vary by how strong their academic achievement diverges (GPA_difference), controlling for the effects of gender match (gender_combination)? 
 We can answer this question by conducting comparisons on new hypothetical datasets in which we set GPA_difference to particular values (e.g., ± 1 SD) but keep the other variables (including gender_match) as is. 
