@@ -15,7 +15,9 @@ Annotations were later added manually using PowerPoint.
 
 ## Data Source
 
-We analyze freely available practice data from the German Socio-Economic Panel Study (SOEP). The data can be downloaded from the SOEP website (https://www.diw.de/en/diw_01.c.836543.en/soep_practice_dataset.html). We are using the English version (DOI: 10.5684/soep.practice.v36).
+We analyze freely available practice data from the German Socio-Economic Panel Study (SOEP). 
+The data can be downloaded from the SOEP website (https://www.diw.de/en/diw_01.c.836543.en/soep_practice_dataset.html). 
+We are using the English version (DOI: 10.5684/soep.practice.v36) which are made available by the DIW under a CC BY-SA 4.0 license (https://creativecommons.org/licenses/by-sa/4.0/)
 
 ```{r load_data}
 soep <- read_dta(here("data/practice_en/practice_dataset_eng.dta"))
