@@ -235,7 +235,7 @@ avg_comparisons(mod_ord, variables = "partner")
 
 ```
 
-The resulting output, however, differs. By default, the output shows how the probability of any response category of friendship_importance when partner changes from 0 to 1. The response categories 1 to 4 become slightly more likely with partner = 1, whereas the probability of giving the highest rating, 5, decreases by 5.5 percentage points. 
+The resulting output, however, differs. By default, the output shows how the probability of any response category of friendship_importance when partner changes from 0 to 1. The response categories 1 to 4 become slightly more likely with partner = 1, whereas the probability of giving the highest rating, 5, decreases by 6.0 percentage points. 
 
 We can also compute the comparison on the assumed underlying latent variable, which is the scale on which the model coefficients are reported in the regression output: 
 
