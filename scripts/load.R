@@ -1,6 +1,8 @@
 # Load all required libraries for the psych project
 
+library(mgcv)
 library(brms)
+library(collapse)
 library(dplyr)
 library(marginaleffects)
 library(haven)
