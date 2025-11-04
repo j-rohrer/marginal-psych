@@ -106,7 +106,7 @@ However, log-odds of friendship are not a particularly intuitive unit, and so in
 
 ```{r}
 # Predicted probabilities
-avg_predictions(mod, by = "deskmate")
+avg_predictions(mod, variables = "deskmate")
 
 # Average Treatment Effect
 ate <- avg_comparisons(mod, variables = "deskmate")
