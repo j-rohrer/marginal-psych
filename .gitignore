@@ -62,3 +62,6 @@ rsconnect/
 #*_files/
 *_cache/
 /.quarto/
+
+# example for a talk at Stanford
+/scripts/talk_example.R
